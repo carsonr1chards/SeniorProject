@@ -1,0 +1,92 @@
+html{
+    background: url(../images/field-background.jpeg) no-repeat center center fixed;
+    -webkit-background-size: cover;
+    -moz-background-size: cover;
+    -o-background-size: cover;
+    background-size: cover;
+}
+
+body{
+    padding: 0;
+    margin: 0;
+}
+
+nav{
+    width: 100%;
+    background-color: rgba(34, 34, 34, 1);
+    display: flex;
+    justify-content: flex-start;
+}
+
+nav img{
+    height: 100%;
+}
+
+#logo {
+    height: auto;
+    width: 40%;
+    align-self: center;
+}
+
+#login-portal{
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr;
+    grid-template-rows: 1fr 1fr 1fr 1fr 1fr;
+    height:100vh;
+}
+
+#login{
+    grid-column: 3/5;
+    grid-row: 2/4;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    height: auto;
+    align-self: center;
+    padding-top: 25px;
+    padding-bottom: 25px;
+    background-color: rgb(106, 120, 122);
+    border-radius: 5px;
+}
+
+#signup{
+    grid-column: 3/5;
+    grid-row: 2/4;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    height: auto;
+    align-self: center;
+    padding-top: 25px;
+    padding-bottom: 25px;
+    background-color: rgb(106, 120, 122);
+    border-radius: 5px;
+}
+
+.login-signup{
+    display: flex;
+    width: 100%;
+    justify-content: center;
+}
+
+.login-signup button{
+    width: 40%;
+    align-self: center;
+    height: 40px;
+    white-space: nowrap;
+    margin: 5px;
+}
+
+#login-button, #signup-button{
+    width: 40%;
+    align-self: center;
+    height: 40px;
+    white-space: nowrap;
+    margin: 5px;
+}
+
+#login input, #signup input{
+    height: 25px;
+    width: 40%;
+    margin: 5px;
+}
