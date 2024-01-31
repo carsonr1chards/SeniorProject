@@ -1,3 +1,5 @@
+loadDataFromServer()
+
 var loginButton = document.querySelector("#login-button");
 var signupButton = document.querySelector("#signup-button");
 
@@ -80,6 +82,102 @@ loginButton.onclick = function(){
     }).then(function (response){
         if (response.status == 201){
             login.style.display = 'none';
+            var header = document.querySelector("#header")
+            var wrapper = document.querySelector("#wrapper")
+            var intramurallText = document.querySelector("#intramurall-text")
+            wrapper.style.display = 'grid';
+            wrapper.style.gridTemplateColumns = '150px 1fr 1fr 1fr 1fr 1fr 1fr';
+            header.style.gridColumn = '0/1'
+            intramurallText.style.display = 'none';
+            createHomePage();
+
+        } else{
+            alert('The email or password you entered was incorrect.')
+        }
+    })
+}
+
+function createHomePage (){
+    var navList = document.createElement("ul");
+    navList.setAttribute('id', 'nav-list');
+    header.appendChild(navList);
+    var logo = document.createElement("img");
+    logo.setAttribute('id', 'header-logo')
+    logo.src = "../images/IntramurALL-Logo.svg";
+    logo.style.height = 'auto';
+    logo.style.width = '130px'
+    navList.appendChild(logo);
+    var homeIcon = document.createElement("img");
+    homeIcon.setAttribute('id', 'home-icon');
+    homeIcon.src = "../images/Home-Icon.svg";
+    navList.appendChild(homeIcon);
+    var p = document.createElement("p");
+    p.innerHTML = 'Home';
+    navList.appendChild(p);
+    var teamsIcon = document.createElement("img");
+    teamsIcon.setAttribute('id', 'teams-icon');
+    teamsIcon.src = "../images/Teams-Icon.svg";
+    navList.appendChild(teamsIcon);
+    p = document.createElement("p");
+    p.innerHTML = 'Teams';
+    navList.appendChild(p);
+    var scheduleIcon = document.createElement("img");
+    scheduleIcon.setAttribute('id', 'schedule-icon');
+    scheduleIcon.src = "../images/Calendar-Icon.svg";
+    navList.appendChild(scheduleIcon);
+    p = document.createElement("p");
+    p.innerHTML = 'Schedule';
+    navList.appendChild(p);
+    var statsIcon = document.createElement("img");
+    statsIcon.setAttribute('id', 'stats-icon');
+    statsIcon.src = "../images/Stats-Icon.svg";
+    navList.appendChild(statsIcon);
+    p = document.createElement("p");
+    p.innerHTML = 'Stats';
+    navList.appendChild(p);
+    welcomeHeaderContainer = document.createElement('div');
+    welcomeHeaderContainer.setAttribute('id', 'welcome-header-container');
+    welcomeHeader = document.createElement('h1');
+    welcomeHeader.setAttribute('id', 'welcome-header');
+    welcomeHeader.innerHTML = "Welcome to IntramurALL";
+    wrapper.appendChild(welcomeHeaderContainer);
+    welcomeHeaderContainer.appendChild(welcomeHeader);
+    p = document.createElement('p');
+    p.innerHTML = 'Play. Connect. Compete.  Your hub for all things intramurals!';
+    welcomeHeaderContainer.appendChild(p);
+    leaguesContainer = document.createElement('div');
+    leaguesContainer.setAttribute('id', 'leagues-container');
+    wrapper.appendChild(leaguesContainer);
+    leaguesContainerHeader = document.createElement('h2');
+    leaguesContainerHeader.innerHTML = 'View Leagues';
+    leaguesContainerHeader.setAttribute('id', 'leagues-container-header');
+    leaguesContainer.appendChild(leaguesContainerHeader);
+    upcomingGamesContainer = document.createElement('div');
+    upcomingGamesContainer.setAttribute('id', 'upcoming-games-container');
+    wrapper.appendChild(upcomingGamesContainer);
+    upcomingGamesHeader = document.createElement('h2');
+    upcomingGamesHeader.setAttribute('id', 'upcoming-games-header');
+    upcomingGamesHeader.innerHTML = "Upcoming Games";
+    upcomingGamesContainer.appendChild(upcomingGamesHeader);
+}
+
+function loadDataFromServer(){
+    fetch("http://localhost:8080/users",{
+        credentials: "include"
+    }).then(function(response){
+        if (response.status == 401){
+
+        } else if(response.status == 200){
+            login.style.display = 'none';
+            var header = document.querySelector("#header")
+            var wrapper = document.querySelector("#wrapper")
+            var intramurallText = document.querySelector("#intramurall-text")
+            wrapper.style.display = 'grid';
+            wrapper.style.gridTemplateColumns = '150px 1fr 1fr 1fr 1fr 1fr 1fr';
+            header.style.gridColumn = '0/1'
+            header.style.gridRow = '0/-1'
+            intramurallText.style.display = 'none';
+            createHomePage();
         }
     })
 }

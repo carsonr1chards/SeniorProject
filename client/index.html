@@ -9,32 +9,34 @@
         <link rel="stylesheet" href="style.css">
     </head>
     <body>
-        <nav>
-            <img src="../images/IntramurALL.svg" alt="">
-        </nav>
-        <div id="login-portal">
-            <div id="login">
-                <img id="logo" src="../images/IntramurALL-Logo.svg" alt="">
-                <div class="login-signup">
-                    <button id="login-switch-button-1">Login</button>
-                    <button id="signup-switch-button-1">Sign up</button>
+        <div id="wrapper">
+            <nav id="header">
+                <img id="intramurall-text" src="../images/IntramurALL.svg" alt="">
+            </nav>
+            <div id="login-portal">
+                <div id="login">
+                    <img id="logo" src="../images/IntramurALL-Logo.svg" alt="">
+                    <div class="login-signup">
+                        <button id="login-switch-button-1">Login</button>
+                        <button id="signup-switch-button-1">Sign up</button>
+                    </div>
+                    Email:<input type="text" id="login-email" placeholder="email">
+                    Password:<input type="password" id="login-password" placeholder="password (8+ characters)">
+                    <button id="login-button">Login</button>
                 </div>
-                <input type="text" id="login-email" placeholder="email">
-                <input type="password" id="login-password" placeholder="password (8+ characters)">
-                <button id="login-button">Login</button>
-            </div>
-    
-            <div id="signup">
-                <img id="logo" src="../images/IntramurALL-Logo.svg" alt="">
-                <div class="login-signup">
-                    <button id="login-switch-button-2">Login</button>
-                    <button id="signup-switch-button-2">Sign up</button>
+        
+                <div id="signup">
+                    <img id="logo" src="../images/IntramurALL-Logo.svg" alt="">
+                    <div class="login-signup">
+                        <button id="login-switch-button-2">Login</button>
+                        <button id="signup-switch-button-2">Sign up</button>
+                    </div>
+                    First Name:<input type="text" id="signup-first-name" placeholder="first name">
+                    Last Name:<input type="text" id="signup-last-name" placeholder="last name"> 
+                    Email:<input type="text" id="signup-email" placeholder="email">
+                    Password:<input type="password" id="signup-password" placeholder="password (8+ characters)">
+                    <button id="signup-button">Sign up</button>
                 </div>
-                <input type="text" id="signup-first-name" placeholder="first name">
-                <input type="text" id="signup-last-name" placeholder="last name"> 
-                <input type="text" id="signup-email" placeholder="email">
-                <input type="password" id="signup-password" placeholder="password (8+ characters)">
-                <button id="signup-button">Sign up</button>
             </div>
         </div>
         <script src="app.js"></script>

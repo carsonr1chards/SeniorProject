@@ -44,6 +44,12 @@ def after_request_func(response):
     response.headers["Access-Control-Allow-Credentials"] =  "true"
     return response
 
+@app.route("/users", methods=["GET"])
+def retrieve_courses_collection():
+    if "user_id" not in g.session_data:
+        return "Unauthorized", 401
+    return "Authorized", 200
+
 @app.route("/users", methods=["POST"])
 def create_in_users_collection():
     print("the request data is:", request.form)

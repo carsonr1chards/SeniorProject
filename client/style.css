@@ -1,3 +1,7 @@
+*{
+    font-family: 'Georgia', serif;
+}
+
 html{
     background: url(../images/field-background.jpeg) no-repeat center center fixed;
     -webkit-background-size: cover;
@@ -11,14 +15,21 @@ body{
     margin: 0;
 }
 
-nav{
+#wrapper{
+    grid-template-columns: 150px, 1fr, 1fr, 1fr, 1fr, 1fr, 1fr;
+    grid-template-rows: repeat(6, 150px);
+}
+
+#header{
     width: 100%;
     background-color: rgba(34, 34, 34, 1);
     display: flex;
     justify-content: flex-start;
+    grid-row: 1/-1;
+    grid-column: 0/1;
 }
 
-nav img{
+#intramurall-text{
     height: 100%;
 }
 
@@ -89,4 +100,94 @@ nav img{
     height: 25px;
     width: 40%;
     margin: 5px;
+}
+
+#nav-list{
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+#nav-list p{
+    color:#fff;
+    padding-top: 0;
+}
+
+#header-logo{
+    padding: 10px;
+}
+
+#home-icon, #stats-icon, #schedule-icon, #teams-icon{
+    height: auto;
+    width: 30%;
+    padding-top: 15px;
+}
+
+#home-icon:hover, #stats-icon:hover, #schedule-icon:hover, #teams-icon:hover{
+    width: 35%;
+}
+
+#welcome-header-container{
+    grid-column: 2/-1;
+    grid-row: 1/2;
+    padding: 25px;
+    margin: 25px;
+    background-color: rgb(252, 123, 4);
+    border-radius: 5px;
+}
+
+#welcome-header-container h1, #welcome-header-container p{
+    padding: 0;
+    margin: 0;
+    text-align: center;
+}
+
+#leagues-container{
+    background-color: #fff;
+    grid-column: 2/6;
+    grid-row: 2/7;
+    margin: 25px;
+    border-radius: 5px;
+}
+
+#leagues-container-header{
+    text-align: center;
+    display: flex;
+    padding: 0;
+    margin: 0;
+    width: 100%;
+    background-color: rgba(34, 34, 34, 1);
+    border-top-left-radius: 5px;
+    border-top-right-radius: 5px;
+    height: 50px;
+    color: #fff;
+    align-items: center;
+    justify-content: center;
+}
+
+#upcoming-games-container{
+    background-color: #fff;
+    grid-column: 6/8;
+    grid-row: 2/7;
+    margin: 25px;
+    border-radius: 5px;
+}
+
+#upcoming-games-header{
+    text-align: center;
+    display: flex;
+    padding: 0;
+    margin: 0;
+    width: 100%;
+    background-color: rgba(34, 34, 34, 1);
+    border-top-left-radius: 5px;
+    border-top-right-radius: 5px;
+    height: 50px;
+    color: #fff;
+    align-items: center;
+    justify-content: center;
 }
