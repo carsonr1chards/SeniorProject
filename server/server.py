@@ -45,7 +45,7 @@ def after_request_func(response):
     return response
 
 @app.route("/users", methods=["GET"])
-def retrieve_courses_collection():
+def retrieve_users_collection():
     if "user_id" not in g.session_data:
         return "Unauthorized", 401
     return "Authorized", 200
@@ -76,13 +76,41 @@ def authenticate_user():
         pw = pw[0]
         if bcrypt.verify(password, pw):
             g.session_data["user_id"] = g.session_id
+            if db.getRole(email) == 'admin':
+                g.session_data["role"] = 'admin'
+                g.session_data["admin_id"] = db.getUserID(email)
+            else:
+                g.session_data["role"] = 'user'
             return "Logged in", 201
         else:
             return "Unable to authenticate", 401
     else:
         return "Unable to authenticate", 401
 
+@app.route("/roles", methods=["POST"])
+def get_role():
+    if g.session_data["role"] == 'admin':
+        return "Role: admin", 201
+    return "Role: user", 401
 
+@app.route("/leagues", methods=["POST"])
+def make_league():
+    league_name = request.form["league_name"]
+    description = request.form["description"]
+    adminID = g.session_data["admin_id"]
+    print("adminID:", adminID)
+
+    db = IntramurallDB()
+    db.makeLeague(league_name, description, adminID)
+    return "Created league", 201
+
+@app.route("/admin-leagues", methods=["GET"])
+def getAdminLeagues():
+    adminID = g.session_data["admin_id"]
+    db = IntramurallDB()
+    leagues = db.getAdminLeagues(adminID)
+    print(leagues)
+    return leagues, 200
 
 def main():
     app.run(port=8080)

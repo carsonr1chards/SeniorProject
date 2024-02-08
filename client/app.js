@@ -28,6 +28,8 @@ loginSwitchButton2.onclick = function(){
     signup.style.display = "none";
 }
 
+var navList = document.querySelector("#nav-list");
+
 function validateEmail(email) {
     var re = /\S+@\S+\.\S+/;
     return re.test(email);
@@ -90,6 +92,7 @@ loginButton.onclick = function(){
             header.style.gridColumn = '0/1'
             intramurallText.style.display = 'none';
             createHomePage();
+            isAdmin();
 
         } else{
             alert('The email or password you entered was incorrect.')
@@ -165,9 +168,7 @@ function loadDataFromServer(){
     fetch("http://localhost:8080/users",{
         credentials: "include"
     }).then(function(response){
-        if (response.status == 401){
-
-        } else if(response.status == 200){
+        if (response.status == 200){
             login.style.display = 'none';
             var header = document.querySelector("#header")
             var wrapper = document.querySelector("#wrapper")
@@ -178,6 +179,143 @@ function loadDataFromServer(){
             header.style.gridRow = '0/-1'
             intramurallText.style.display = 'none';
             createHomePage();
+            isAdmin();
         }
+    })
+}
+
+function isAdmin(){
+    fetch("http://localhost:8080/roles",{
+        credentials: "include",
+        method: "POST",
+        headers: {
+            "content-type": "application/x-www-form-urlencoded"
+        }
+    }).then(function(response){
+        if (response.status == 201){
+            var adminIcon = document.createElement("img");
+            adminIcon.setAttribute('id', 'admin-icon');
+            adminIcon.src = "../images/Admin-Icon.svg";
+            var navList = document.querySelector("#nav-list")
+            navList.appendChild(adminIcon);
+            p = document.createElement("p");
+            p.innerHTML = 'Admin';
+            navList.appendChild(p);
+            adminIcon.onclick = function(){
+                adminPortal()
+            }
+        }
+    })
+}
+
+function adminPortal(){
+    document.querySelector("#leagues-container").style.display = 'none';
+    document.querySelector("#upcoming-games-container").style.display = 'none';
+    document.querySelector("#welcome-header").innerHTML = "IntramurALL Admin";
+    var adminLeaguesContainer = document.createElement('div');
+    adminLeaguesContainer.setAttribute('id', 'admin-leagues-container');
+    document.querySelector('#wrapper').appendChild(adminLeaguesContainer);
+    var adminLeaguesHeader = document.createElement('h2');
+    adminLeaguesHeader.innerHTML = 'My Leagues';
+    adminLeaguesContainer.appendChild(adminLeaguesHeader);
+    adminLeaguesHeader.setAttribute('id', 'admin-leagues-header');
+    adminLeagues = document.createElement('div');
+    adminLeagues.setAttribute('id', 'admin-leagues');
+    adminLeaguesContainer.appendChild(adminLeagues);
+    var addLeaguesContainer = document.createElement('div');
+    addLeaguesContainer.setAttribute('id', 'add-leagues-container');
+    adminLeaguesContainer.appendChild(addLeaguesContainer);
+    var addLeaguesHeader = document.createElement('h2');
+    addLeaguesHeader.setAttribute('id', 'add-leagues-header');
+    addLeaguesHeader.innerHTML = 'Add Leagues';
+    addLeaguesContainer.appendChild(addLeaguesHeader);
+    var leagueName = document.createElement('p');
+    leagueName.setAttribute('class', 'add-league-input-titles');
+    leagueName.innerHTML = 'League Name';
+    addLeaguesContainer.appendChild(leagueName);
+    var leagueNameInput = document.createElement('input');
+    leagueNameInput.setAttribute('id', 'add-league-input');
+    addLeaguesContainer.appendChild(leagueNameInput);
+    var description = document.createElement('p');
+    description.setAttribute('class', 'add-league-input-titles');
+    description.innerHTML = 'Description';
+    addLeaguesContainer.appendChild(description);
+    var descriptionInput = document.createElement('input');
+    descriptionInput.setAttribute('id', 'add-description-input');
+    addLeaguesContainer.appendChild(descriptionInput);
+    var addLeaguesButton = document.createElement('button');
+    addLeaguesButton.setAttribute('id', 'add-leagues-button');
+    addLeaguesButton.innerHTML = 'Add League';
+    addLeaguesContainer.appendChild(addLeaguesButton)
+    addLeaguesButton.onclick = function(){
+        addLeague(leagueNameInput.value, descriptionInput.value);
+    }
+    displayAdminLeagues();
+}
+
+function addLeague(league, description){
+    data = "league_name=" + league + "&" + "description=" + description;
+    fetch("http://localhost:8080/leagues",{
+        credentials: 'include',
+        method: 'POST',
+        body: data,
+        headers: {
+            "content-type": "application/x-www-form-urlencoded"
+        }
+    }).then(function(response) {
+        if (response.status == 201){
+            console.log("League added:", league)
+            
+            const row = document.createElement('tr');
+            
+            const cell1 = document.createElement('td');
+            cell1.textContent = document.querySelector('#add-description-input').value;
+            row.appendChild(cell1);
+
+            const cell2 = document.createElement('td');
+            cell2.textContent = document.querySelector('#add-league-input').value;
+            row.appendChild(cell2);
+                
+            leaguesTable = document.querySelector("#admin-leagues-table");
+            leaguesTable.appendChild(row);
+            document.querySelector('#add-description-input').value = '';
+            document.querySelector('#add-league-input').value = '';
+        }
+    })
+}
+
+
+function displayAdminLeagues(){
+    fetch("http://localhost:8080/admin-leagues",{
+        credentials: 'include',
+    }).then(function(response){
+        response.json().then(function(data){
+            leagues = data;
+            leaguesTable = document.createElement('table');
+            leaguesTable.setAttribute('id', 'admin-leagues-table');
+            adminLeagues = document.querySelector("#admin-leagues");
+            adminLeagues.appendChild(leaguesTable);
+            leaguesTableHeader = document.createElement('tr');
+            var leagueHeader = document.createElement('th');
+            leagueHeader.innerHTML = 'League';
+            leaguesTableHeader.appendChild(leagueHeader);
+            var descriptionHeader = document.createElement('th');
+            descriptionHeader.innerHTML = 'Description';
+            leaguesTableHeader.appendChild(descriptionHeader);
+            leaguesTable.appendChild(leaguesTableHeader);
+            
+            leagues.forEach( function(league){
+                const row = document.createElement('tr');
+
+                // Create and append cells for each data item
+                for (const key in league) {
+                  const cell = document.createElement('td');
+                  cell.textContent = league[key];
+                  row.appendChild(cell);
+                }
+              
+                leaguesTable.appendChild(row);
+            });
+        })
     })
 }
