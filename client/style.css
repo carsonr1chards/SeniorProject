@@ -152,7 +152,6 @@ body{
     grid-row: 2/7;
     margin: 25px;
     border-radius: 5px;
-    overflow: scroll;
 }
 
 #leagues-container-header{
@@ -195,7 +194,7 @@ body{
 
 #admin-leagues-container{
     background-color: #fff;
-    grid-row: 2/6;
+    grid-row: 2/7;
     grid-column: 2/8;
     margin: 25px;
     border-radius: 5px;
@@ -253,27 +252,41 @@ body{
     padding-bottom: 20px;
 }
 
+#organization-input{
+    width: 20%;
+    margin-bottom: 1em;
+}
+
 table {
     width: 100%;
     border-collapse: collapse;
     border-spacing: 0;
-  }
-  
-  /* Style the table header */
-  th {
+}
+
+/* Style the table header */
+th {
     background-color: #f2f2f2;
     border: 1px solid #dddddd;
     padding: 8px;
     text-align: left;
-  }
-  
-  /* Style the table rows */
-  tr:nth-child(even) {
+}
+
+/* Style the table rows */
+tr:nth-child(even) {
     background-color: #f9f9f9;
-  }
-  
-  /* Style the table data cells */
-  td {
+}
+
+/* Style the table data cells */
+td {
     border: 1px solid #dddddd;
     padding: 8px;
-  }
+}
+
+#organization-selector-container{
+    text-align: center;
+}
+
+#leagues-table-container{
+    overflow: scroll;
+    height: 90%;
+}

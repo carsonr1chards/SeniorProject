@@ -1,4 +1,4 @@
-from flask import Flask, request, g
+from flask import Flask, request, g, send_file
 from intramural_db import IntramurallDB
 from passlib.hash import bcrypt
 from session_store import SessionStore
@@ -43,6 +43,12 @@ def after_request_func(response):
     response.headers["Access-Control-Allow-Origin"] = request.headers.get("Origin")
     response.headers["Access-Control-Allow-Credentials"] =  "true"
     return response
+
+@app.route("/<path:path>")
+def load_page(path):
+    print("the path:", path)
+    if path:
+        return send_file("../client/" + path)
 
 @app.route("/users", methods=["GET"])
 def retrieve_users_collection():
@@ -97,11 +103,12 @@ def get_role():
 def make_league():
     league_name = request.form["league_name"]
     description = request.form["description"]
+    organization = request.form["organization"]
     adminID = g.session_data["admin_id"]
     print("adminID:", adminID)
 
     db = IntramurallDB()
-    db.makeLeague(league_name, description, adminID)
+    db.makeLeague(league_name, description, organization, adminID)
     return "Created league", 201
 
 @app.route("/admin-leagues", methods=["GET"])
@@ -111,6 +118,12 @@ def getAdminLeagues():
     leagues = db.getAdminLeagues(adminID)
     print(leagues)
     return leagues, 200
+
+@app.route("/organizations", methods=["GET"])
+def getOrganizations():
+    db = IntramurallDB()
+    organizations = db.getOrganizations()
+    return organizations, 200
 
 def main():
     app.run(port=8080)

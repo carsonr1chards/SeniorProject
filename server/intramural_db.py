@@ -62,13 +62,14 @@ class IntramurallDB:
         userID = self.cursor.fetchone()
         return userID[0]
 
-    def makeLeague(self, league_name, description, adminID):
-        make_league = ("INSERT INTO leagues (league_name, description, adminID)"
-                       "values (%(league_name)s, %(description)s, %(adminID)s)")
+    def makeLeague(self, league_name, description, organization, adminID):
+        make_league = ("INSERT INTO leagues (league_name, description, organization, adminID)"
+                       "values (%(league_name)s, %(description)s, %(organization)s, %(adminID)s)")
 
         league_data = {
             'league_name': league_name,
             'description': description,
+            'organization': organization,
             'adminID': adminID
         }
 
@@ -76,7 +77,7 @@ class IntramurallDB:
         self.cnx.commit()
 
     def getAdminLeagues(self, adminID):
-        get_league = ("SELECT league_name, description FROM leagues WHERE adminID = %(adminID)s")
+        get_league = ("SELECT league_name, description, organization FROM leagues WHERE adminID = %(adminID)s")
         admin_data = {
             'adminID': adminID
         }
@@ -84,6 +85,13 @@ class IntramurallDB:
         self.cursor.execute(get_league, admin_data)
         leagues = self.cursor.fetchall()
         return leagues
+
+    def getOrganizations(self):
+        get_org = ("SELECT league_name, organization FROM leagues")
+
+        self.cursor.execute(get_org)
+        organizations = self.cursor.fetchall()
+        return organizations
 
     def __exit__(self):
         self.cnx.close()
@@ -115,19 +123,21 @@ CREATE TABLE users (
 
 '''
 describe intramurall.leagues
-+-------------+--------------+------+-----+---------+-------+
-| Field       | Type         | Null | Key | Default | Extra |
-+-------------+--------------+------+-----+---------+-------+
-| league_name | varchar(255) | YES  |     | NULL    |       |
-| description | varchar(255) | YES  |     | NULL    |       |
-| adminID     | int          | YES  |     | NULL    |       |
-+-------------+--------------+------+-----+---------+-------+
++--------------+--------------+------+-----+---------+-------+
+| Field        | Type         | Null | Key | Default | Extra |
++--------------+--------------+------+-----+---------+-------+
+| league_name  | varchar(255) | YES  |     | NULL    |       |
+| description  | varchar(255) | YES  |     | NULL    |       |
+| organization | varchar(255) | YES  |     | NULL    |       |
+| adminID      | int          | YES  |     | NULL    |       |
++--------------+--------------+------+-----+---------+-------+
 '''
 
 '''
 CREATE TABLE leagues (
-    league_name varchar 255,
-    description varchar 255,
+    league_name varchar(255),
+    description varchar(255),
+    organization varchar(255),
     adminID int
 );
 '''

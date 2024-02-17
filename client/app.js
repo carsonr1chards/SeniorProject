@@ -91,6 +91,7 @@ loginButton.onclick = function(){
             wrapper.style.gridTemplateColumns = '150px 1fr 1fr 1fr 1fr 1fr 1fr';
             header.style.gridColumn = '0/1'
             intramurallText.style.display = 'none';
+            document.querySelector("#login-portal").style.display = 'none';
             createHomePage();
             isAdmin();
 
@@ -106,34 +107,40 @@ function createHomePage (){
     header.appendChild(navList);
     var logo = document.createElement("img");
     logo.setAttribute('id', 'header-logo')
-    logo.src = "../images/IntramurALL-Logo.svg";
+    logo.src = "/images/IntramurALL-Logo.svg";
     logo.style.height = 'auto';
     logo.style.width = '130px'
     navList.appendChild(logo);
     var homeIcon = document.createElement("img");
     homeIcon.setAttribute('id', 'home-icon');
-    homeIcon.src = "../images/Home-Icon.svg";
+    homeIcon.src = "/images/Home-Icon.svg";
     navList.appendChild(homeIcon);
+    var homeIcon = document.querySelector("#home-icon");
+    document.querySelector("#login-portal").style.display = 'none';
+    homeIcon.onclick = function(){
+        clearPage();
+        displayHomePage();
+    }
     var p = document.createElement("p");
     p.innerHTML = 'Home';
     navList.appendChild(p);
     var teamsIcon = document.createElement("img");
     teamsIcon.setAttribute('id', 'teams-icon');
-    teamsIcon.src = "../images/Teams-Icon.svg";
+    teamsIcon.src = "/images/Teams-Icon.svg";
     navList.appendChild(teamsIcon);
     p = document.createElement("p");
     p.innerHTML = 'Teams';
     navList.appendChild(p);
     var scheduleIcon = document.createElement("img");
     scheduleIcon.setAttribute('id', 'schedule-icon');
-    scheduleIcon.src = "../images/Calendar-Icon.svg";
+    scheduleIcon.src = "/images/Calendar-Icon.svg";
     navList.appendChild(scheduleIcon);
     p = document.createElement("p");
     p.innerHTML = 'Schedule';
     navList.appendChild(p);
     var statsIcon = document.createElement("img");
     statsIcon.setAttribute('id', 'stats-icon');
-    statsIcon.src = "../images/Stats-Icon.svg";
+    statsIcon.src = "/images/Stats-Icon.svg";
     navList.appendChild(statsIcon);
     p = document.createElement("p");
     p.innerHTML = 'Stats';
@@ -155,6 +162,19 @@ function createHomePage (){
     leaguesContainerHeader.innerHTML = 'View Leagues';
     leaguesContainerHeader.setAttribute('id', 'leagues-container-header');
     leaguesContainer.appendChild(leaguesContainerHeader);
+    organizationSelectorContainer = document.createElement('div');
+    organizationSelectorContainer.setAttribute('id', 'organization-selector-container');
+    leaguesContainer.appendChild(organizationSelectorContainer);
+    organizationSearch = document.createElement('input');
+    organizationSearch.placeholder = "Search By Organization"
+    displayOrganizations();
+    organizationSelectorContainer.appendChild(organizationSearch);
+    leaguesTable = document.createElement('table');
+    leaguesTable.setAttribute('id', 'leagues-table');
+    leaguesTableContainer = document.createElement('div');
+    leaguesTableContainer.setAttribute('id', 'leagues-table-container');
+    leaguesContainer.appendChild(leaguesTableContainer);
+    leaguesTableContainer.appendChild(leaguesTable);
     upcomingGamesContainer = document.createElement('div');
     upcomingGamesContainer.setAttribute('id', 'upcoming-games-container');
     wrapper.appendChild(upcomingGamesContainer);
@@ -162,6 +182,31 @@ function createHomePage (){
     upcomingGamesHeader.setAttribute('id', 'upcoming-games-header');
     upcomingGamesHeader.innerHTML = "Upcoming Games";
     upcomingGamesContainer.appendChild(upcomingGamesHeader);
+}
+
+function displayOrganizations(){
+    searchInput = organizationSearch.value;
+    fetch("http://localhost:8080/organizations", {
+        credentials: "include"
+    }).then(function(response){
+        if (response.status == 200){
+            response.json().then(function(data){
+                organizations = data;
+                organizations.forEach( function(organization){
+                    const row = document.createElement('tr');
+    
+                    // Create and append cells for each data item
+                    for (const key in organization) {
+                      const cell = document.createElement('td');
+                      cell.textContent = organization[key];
+                      row.appendChild(cell);
+                    }
+                    
+                    leaguesTable.appendChild(row);
+                });
+            })
+        }
+    })
 }
 
 function loadDataFromServer(){
@@ -195,14 +240,20 @@ function isAdmin(){
         if (response.status == 201){
             var adminIcon = document.createElement("img");
             adminIcon.setAttribute('id', 'admin-icon');
-            adminIcon.src = "../images/Admin-Icon.svg";
+            adminIcon.src = "/images/Admin-Icon.svg";
             var navList = document.querySelector("#nav-list")
             navList.appendChild(adminIcon);
             p = document.createElement("p");
             p.innerHTML = 'Admin';
             navList.appendChild(p);
             adminIcon.onclick = function(){
-                adminPortal()
+                var adminLeaguesContainer = document.querySelector("#admin-leagues-container");
+                if (!(adminLeaguesContainer)){
+                    adminPortal();
+                }else{
+                    clearPage();
+                    displayAdminPortal();
+                }
             }
         }
     })
@@ -236,6 +287,13 @@ function adminPortal(){
     var leagueNameInput = document.createElement('input');
     leagueNameInput.setAttribute('id', 'add-league-input');
     addLeaguesContainer.appendChild(leagueNameInput);
+    var organization = document.createElement('p');
+    organization.innerHTML = 'Organization';
+    organization.setAttribute('class', 'add-league-input-titles');
+    addLeaguesContainer.appendChild(organization);
+    var organizationInput = document.createElement('input');
+    organizationInput.setAttribute('id', 'organization-input');
+    addLeaguesContainer.appendChild(organizationInput);
     var description = document.createElement('p');
     description.setAttribute('class', 'add-league-input-titles');
     description.innerHTML = 'Description';
@@ -248,13 +306,13 @@ function adminPortal(){
     addLeaguesButton.innerHTML = 'Add League';
     addLeaguesContainer.appendChild(addLeaguesButton)
     addLeaguesButton.onclick = function(){
-        addLeague(leagueNameInput.value, descriptionInput.value);
+        addLeague(leagueNameInput.value, descriptionInput.value, organizationInput.value);
     }
     displayAdminLeagues();
 }
 
-function addLeague(league, description){
-    data = "league_name=" + league + "&" + "description=" + description;
+function addLeague(league, description, organization){
+    data = "league_name=" + league + "&" + "description=" + description + "&" + "organization=" + organization;
     fetch("http://localhost:8080/leagues",{
         credentials: 'include',
         method: 'POST',
@@ -269,17 +327,22 @@ function addLeague(league, description){
             const row = document.createElement('tr');
             
             const cell1 = document.createElement('td');
-            cell1.textContent = document.querySelector('#add-description-input').value;
+            cell1.textContent = document.querySelector('#add-league-input').value;
             row.appendChild(cell1);
 
             const cell2 = document.createElement('td');
-            cell2.textContent = document.querySelector('#add-league-input').value;
+            cell2.textContent = document.querySelector('#add-description-input').value;
             row.appendChild(cell2);
+
+            const cell3 = document.createElement('td');
+            cell3.textContent = document.querySelector('#organization-input').value;
+            row.appendChild(cell3);
                 
-            leaguesTable = document.querySelector("#admin-leagues-table");
-            leaguesTable.appendChild(row);
+            adminLeaguesTable = document.querySelector("#admin-leagues-table");
+            adminLeaguesTable.appendChild(row);
             document.querySelector('#add-description-input').value = '';
             document.querySelector('#add-league-input').value = '';
+            document.querySelector('#organization-input').value = '';
         }
     })
 }
@@ -291,10 +354,10 @@ function displayAdminLeagues(){
     }).then(function(response){
         response.json().then(function(data){
             leagues = data;
-            leaguesTable = document.createElement('table');
-            leaguesTable.setAttribute('id', 'admin-leagues-table');
+            adminLeaguesTable = document.createElement('table');
+            adminLeaguesTable.setAttribute('id', 'admin-leagues-table');
             adminLeagues = document.querySelector("#admin-leagues");
-            adminLeagues.appendChild(leaguesTable);
+            adminLeagues.appendChild(adminLeaguesTable);
             leaguesTableHeader = document.createElement('tr');
             var leagueHeader = document.createElement('th');
             leagueHeader.innerHTML = 'League';
@@ -302,7 +365,10 @@ function displayAdminLeagues(){
             var descriptionHeader = document.createElement('th');
             descriptionHeader.innerHTML = 'Description';
             leaguesTableHeader.appendChild(descriptionHeader);
-            leaguesTable.appendChild(leaguesTableHeader);
+            var organizationHeader = document.createElement('th');
+            organizationHeader.innerHTML = 'Organization';
+            leaguesTableHeader.appendChild(organizationHeader);
+            adminLeaguesTable.appendChild(leaguesTableHeader);
             
             leagues.forEach( function(league){
                 const row = document.createElement('tr');
@@ -314,8 +380,36 @@ function displayAdminLeagues(){
                   row.appendChild(cell);
                 }
               
-                leaguesTable.appendChild(row);
+                adminLeaguesTable.appendChild(row);
             });
         })
     })
+}
+
+// **Continue here, find way to clear existing containers and load landing page**
+
+function clearPage(){
+    var wrapper = document.querySelector("#wrapper");
+    var divsInsideWrapper = wrapper.querySelectorAll("div");
+
+    for (var i = 0; i < divsInsideWrapper.length; i++){
+        divsInsideWrapper[i].style.display = "none";
+    }
+}
+
+function displayHomePage(){
+    document.querySelector("#welcome-header-container").style.display = "block";
+    document.querySelector("#leagues-container").style.display = "block";
+    document.querySelector("#upcoming-games-container").style.display = "block";
+    document.querySelector("#welcome-header").innerHTML = "Welcome to IntramurALL"
+    document.querySelector("#organization-selector-container").style.display = 'block';
+    document.querySelector("#leagues-table-container").style.display = 'block';
+}
+
+function displayAdminPortal(){
+    document.querySelector("#admin-leagues-container").style.display = "block";
+    document.querySelector("#welcome-header-container").style.display = "block";
+    document.querySelector("#admin-leagues").style.display = "block";
+    document.querySelector("#add-leagues-container").style.display = "flex";
+    document.querySelector("#welcome-header").innerHTML = "IntramurALL Admin";
 }
