@@ -290,3 +290,102 @@ td {
     overflow: scroll;
     height: 90%;
 }
+
+.view-league-cell{
+    display: flex;
+    justify-content: center;
+}
+
+.modify-league-cell{
+    display: flex;
+    justify-content: space-around;
+}
+
+#league-display{
+    grid-column: 2/8;
+    grid-row: 2/7;
+    background-color: #fff;
+    margin: 25px;
+    border-radius: 5px;
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr;
+    grid-template-rows: 50px 1fr 1fr 1fr 1fr 1fr 1fr 1fr;
+}
+
+#league-display-header{
+    text-align: center;
+    grid-column: 3/5;
+    text-wrap: nowrap;
+    padding: 0;
+    margin: 0;
+}
+
+#league-display-header-div{
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr;
+    grid-template-rows: 50px;
+    padding: 0;
+    margin: 0;
+    width: 100%;
+    height: 50px;
+    background-color: rgba(34, 34, 34, 1);
+    border-top-left-radius: 5px;
+    border-top-right-radius: 5px;
+    color: #fff;
+    align-items: center;
+    justify-content: center;
+    grid-column: 1/7;
+    grid-row: 1/2;
+}
+
+#close-button{
+    height: 25px;
+    grid-column: 6;
+    align-self: center;
+    justify-self: flex-end;
+    padding: 25px;
+}
+
+#close-button:hover{
+    height: 30px;
+}
+
+#view-teams-switch, #create-team-switch{
+    width: 15%;
+    height: 25px;
+    text-align: center;
+    flex-direction: row;
+}
+
+#create-team-switch{
+    background-color: rgb(252, 123, 4);
+    border-radius: 2px;
+}
+
+#view-teams-switch{
+    background-color: buttonface;
+    border-radius: 2px;
+}
+
+#display-switches{
+    display: flex;
+    justify-content: center;
+    grid-row: 2/3;
+    grid-column: 1/7;
+    align-items: center;
+}
+
+#create-team-display{
+    grid-row: 3/6;
+    grid-column: 3/5;
+}
+
+#create-team-inputs{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+#create-team-inputs input{
+    margin: 5px;
+}

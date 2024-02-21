@@ -166,15 +166,37 @@ function createHomePage (){
     organizationSelectorContainer.setAttribute('id', 'organization-selector-container');
     leaguesContainer.appendChild(organizationSelectorContainer);
     organizationSearch = document.createElement('input');
-    organizationSearch.placeholder = "Search By Organization"
-    displayOrganizations();
+    organizationSearch.placeholder = "Search By Organization";
+    loadLeagues();
     organizationSelectorContainer.appendChild(organizationSearch);
+    searchButton = document.createElement('button');
+    searchButton.setAttribute('id', 'organization-search-button');
+    searchButton.innerHTML = "Search";
+    searchButton.onclick = function(){
+        organization = organizationSearch.value;
+        filterLeagues(organization);
+    }
+    organizationSelectorContainer.appendChild(searchButton);
     leaguesTable = document.createElement('table');
     leaguesTable.setAttribute('id', 'leagues-table');
     leaguesTableContainer = document.createElement('div');
     leaguesTableContainer.setAttribute('id', 'leagues-table-container');
     leaguesContainer.appendChild(leaguesTableContainer);
     leaguesTableContainer.appendChild(leaguesTable);
+
+    leaguesTableHeader = document.createElement('tr');
+    leaguesTableHeader.setAttribute('id', 'leagues-table-header');
+    var leagueHeader = document.createElement('th');
+    leagueHeader.innerHTML = 'League';
+    leaguesTableHeader.appendChild(leagueHeader);
+    var organizationHeader = document.createElement('th');
+    organizationHeader.innerHTML = 'Organization';
+    leaguesTableHeader.appendChild(organizationHeader);
+    header = document.createElement('th');
+    leaguesTableHeader.appendChild(header);
+    leaguesTable.appendChild(leaguesTableHeader);
+
+
     upcomingGamesContainer = document.createElement('div');
     upcomingGamesContainer.setAttribute('id', 'upcoming-games-container');
     wrapper.appendChild(upcomingGamesContainer);
@@ -184,7 +206,7 @@ function createHomePage (){
     upcomingGamesContainer.appendChild(upcomingGamesHeader);
 }
 
-function displayOrganizations(){
+function loadLeagues(){
     searchInput = organizationSearch.value;
     fetch("http://localhost:8080/organizations", {
         credentials: "include"
@@ -192,6 +214,7 @@ function displayOrganizations(){
         if (response.status == 200){
             response.json().then(function(data){
                 organizations = data;
+                var i = 0;
                 organizations.forEach( function(organization){
                     const row = document.createElement('tr');
     
@@ -201,12 +224,53 @@ function displayOrganizations(){
                       cell.textContent = organization[key];
                       row.appendChild(cell);
                     }
-                    
+                    const cell = document.createElement('td');
+                    cell.setAttribute('class', 'view-league-cell');
+                    viewButton = document.createElement('button');
+                    viewButton.setAttribute('class', 'view-league-button');
+                    // viewButton.setAttribute('id', i);
+                    viewButton.innerHTML = 'View';
+                    cell.append(viewButton);
+                    row.appendChild(cell);
                     leaguesTable.appendChild(row);
+                    i++;
+                });
+                [...document.getElementsByClassName('view-league-button')].forEach(x =>{
+                    x.addEventListener('click', function(){
+                        viewLeague(this);
+                    })
                 });
             })
         }
     })
+}
+
+
+function displayLeagues(){
+    var leaguesTable = document.querySelector('#leagues-table');
+    var leagues = leaguesTable.querySelectorAll('tr');
+    for (var i = 0; i < leagues.length; i++){
+        if (leagues[i].style.display == 'none'){
+            leagues[i].style.display = 'table-row';
+        }
+    }
+}
+
+function filterLeagues(organization){
+    displayLeagues();
+    var leaguesTable = document.querySelector('#leagues-table');
+    var leagues = leaguesTable.querySelectorAll('tr');
+
+    for (var i = 0; i < leagues.length; i++){
+        league = leagues[i].children[1].textContent.toUpperCase();
+        if (league.includes(organization.toUpperCase())){
+            // pass
+        } else{
+            leagues[i].style.display = 'none';
+        }
+    }
+    tableHeader = document.querySelector("#leagues-table-header");
+    tableHeader.style.display = 'table-row';
 }
 
 function loadDataFromServer(){
@@ -215,9 +279,9 @@ function loadDataFromServer(){
     }).then(function(response){
         if (response.status == 200){
             login.style.display = 'none';
-            var header = document.querySelector("#header")
-            var wrapper = document.querySelector("#wrapper")
-            var intramurallText = document.querySelector("#intramurall-text")
+            var header = document.querySelector("#header");
+            var wrapper = document.querySelector("#wrapper");
+            var intramurallText = document.querySelector("#intramurall-text");
             wrapper.style.display = 'grid';
             wrapper.style.gridTemplateColumns = '150px 1fr 1fr 1fr 1fr 1fr 1fr';
             header.style.gridColumn = '0/1'
@@ -227,6 +291,137 @@ function loadDataFromServer(){
             isAdmin();
         }
     })
+}
+
+function viewLeague(button){
+    organization = button.parentElement.parentElement.children[1].textContent;
+    league = button.parentElement.parentElement.children[0].textContent;
+    organziation = organization.replace(/ /g, "%20");
+    league = league.replace(/ /g, "%20");
+    fetch("http://localhost:8080/leagues?league=" + league + "&organization=" + organization, {
+        credentials: "include"
+    }).then(function(response){
+        if (response.status == 200){
+            response.json().then(function(data){
+                // will return an array 
+                // [league name, description, organziation]
+                leagueInfo = data[0];
+                leagueDisplay = document.createElement('div');
+                leagueDisplay.setAttribute("id", "league-display");
+                var wrapper = document.querySelector("#wrapper");
+                wrapper.appendChild(leagueDisplay);
+                leagueDisplayHeader = document.createElement('h2');
+                leagueDisplayHeader.setAttribute('id', 'league-display-header');
+                leagueDisplayHeader.innerHTML = leagueInfo[0];
+                leagueDisplayHeaderDiv = document.createElement('div');
+                leagueDisplayHeaderDiv.setAttribute('id', 'league-display-header-div');
+                leagueDisplay.appendChild(leagueDisplayHeaderDiv);
+                leagueDisplayHeaderDiv.appendChild(leagueDisplayHeader);
+
+                createTeamSwitch = document.createElement('button');
+                createTeamSwitch.setAttribute('id', 'create-team-switch');
+                createTeamSwitch.innerHTML = 'Create Team';
+
+                viewTeamsSwitch = document.createElement('button');
+                viewTeamsSwitch.setAttribute('id', 'view-teams-switch');
+                viewTeamsSwitch.innerHTML = 'View Teams';
+                
+                displaySwitches = document.createElement('div');
+                displaySwitches.setAttribute('id', 'display-switches');
+                leagueDisplay.appendChild(displaySwitches);
+
+                displaySwitches.appendChild(viewTeamsSwitch);
+                displaySwitches.appendChild(createTeamSwitch);
+                createTeamDisplay = document.createElement('div');
+                createTeamDisplay.setAttribute('id', 'create-team-display');
+                leagueDisplay.appendChild(createTeamDisplay);
+
+                createTeamInputs = document.createElement('div');
+                createTeamInputs.setAttribute('id', 'create-team-inputs');
+                createTeamDisplay.appendChild(createTeamInputs);
+                teamName = document.createElement('label');
+                teamName.for = 'team-name';
+                teamName.innerHTML = 'Team Name';
+
+                teamNameInput = document.createElement('input');
+                teamNameInput.setAttribute('id','team-name');
+
+                email = document.createElement('label');
+                email.for = 'email';
+                email.innerHTML = 'Email';
+
+                emailInput = document.createElement('input');
+                emailInput.setAttribute('id','email');
+
+                createTeamInputs.appendChild(teamName);
+                createTeamInputs.appendChild(teamNameInput);
+                createTeamInputs.appendChild(email);
+                createTeamInputs.appendChild(emailInput);
+                createTeamButton = document.createElement('button');
+                createTeamButton.setAttribute('id', 'create-team-button');
+                createTeamButton.innerHTML = 'Create';
+                createTeamInputs.appendChild(createTeamButton);
+
+                createTeamButton.onclick = function(){
+                    if (teamNameInput.value == '' || emailInput.value == ''){
+                        return;
+                    }
+                    console.log(teamNameInput.value, emailInput.value, leagueInfo[0], leagueInfo[2]);
+                    createTeam(teamNameInput.value, emailInput.value, leagueInfo[0], leagueInfo[2]);
+                    teamNameInput.value = '';
+                    emailInput.value = '';
+                }
+
+                viewTeamsSwitch.onclick = function(){
+                    createTeamDisplay.style.display = 'none';
+                    createTeamSwitch.style.backgroundColor = 'buttonface';
+                    viewTeamsSwitch.style.backgroundColor = 'rgb(252, 123, 4)';
+                }
+
+                createTeamSwitch.onclick = function(){
+                    createTeamDisplay.style.display = 'block';
+                    createTeamSwitch.style.backgroundColor = 'rgb(252, 123, 4)';
+                    viewTeamsSwitch.style.backgroundColor = 'buttonface';
+                }
+
+                closeButton = document.createElement('img');
+                closeButton.src = 'images/x-button.png';
+                closeButton.setAttribute('id', 'close-button');
+                leagueDisplayHeaderDiv.appendChild(closeButton);
+                closeButton.onclick = function(){
+                    closeLeagueDisplay();
+
+                populateLeagueTeams();
+                }
+            });
+        }
+    })
+}
+
+function createTeam(teamName, email, league, organization){
+    data = "team_name=" + teamName + "&email=" + email + "&league=" + league + "&organization=" + organization;
+    fetch('http://localhost:8080/teams',{
+        credentials: "include",
+        method: 'POST',
+        body: data,
+        headers: {
+            "content-type": "application/x-www-form-urlencoded"
+        }
+    }).then(function(respone){
+        if (respone.status = 201){
+            console.log("Team created.")
+        }
+    })
+}
+
+function closeLeagueDisplay(){
+    leagueDisplay = document.querySelector("#league-display");
+    leagueDisplay.remove();
+
+}
+
+function populateLeagueTeams(){
+    console.log("Populate teams");
 }
 
 function isAdmin(){
@@ -368,6 +563,8 @@ function displayAdminLeagues(){
             var organizationHeader = document.createElement('th');
             organizationHeader.innerHTML = 'Organization';
             leaguesTableHeader.appendChild(organizationHeader);
+            header = document.createElement('th');
+            leaguesTableHeader.appendChild(header);
             adminLeaguesTable.appendChild(leaguesTableHeader);
             
             leagues.forEach( function(league){
@@ -379,14 +576,29 @@ function displayAdminLeagues(){
                   cell.textContent = league[key];
                   row.appendChild(cell);
                 }
-              
+                const cell = document.createElement('td');
+                cell.setAttribute('class', 'modify-league-cell');
+
+
+                editButton = document.createElement('button');
+                editButton.setAttribute('class', 'edit-league-button');
+                editButton.innerHTML = 'Edit';
+                cell.append(editButton);
+
+                deleteButton = document.createElement('button');
+                deleteButton.setAttribute('class', 'delete-league-button');
+                deleteButton.innerHTML = 'Delete';
+                cell.append(deleteButton);
+
+                row.appendChild(cell);
+
                 adminLeaguesTable.appendChild(row);
             });
         })
     })
 }
 
-// **Continue here, find way to clear existing containers and load landing page**
+
 
 function clearPage(){
     var wrapper = document.querySelector("#wrapper");
@@ -394,6 +606,10 @@ function clearPage(){
 
     for (var i = 0; i < divsInsideWrapper.length; i++){
         divsInsideWrapper[i].style.display = "none";
+    }
+    if (document.querySelector("#league-display")){
+        leagueDisplay = document.querySelector("#league-display");
+        leagueDisplay.remove();
     }
 }
 

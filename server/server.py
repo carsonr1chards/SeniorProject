@@ -50,9 +50,13 @@ def load_page(path):
     if path:
         return send_file("../client/" + path)
 
+@app.route("/favicon.ico")
+def return_icon():
+    return send_file("../client/images/favicon.ico")
+
 @app.route("/users", methods=["GET"])
 def retrieve_users_collection():
-    if "user_id" not in g.session_data:
+    if "user_session_id" not in g.session_data:
         return "Unauthorized", 401
     return "Authorized", 200
 
@@ -81,12 +85,13 @@ def authenticate_user():
         pw = db.getPassword(email)
         pw = pw[0]
         if bcrypt.verify(password, pw):
-            g.session_data["user_id"] = g.session_id
+            g.session_data["user_session_id"] = g.session_id
             if db.getRole(email) == 'admin':
                 g.session_data["role"] = 'admin'
                 g.session_data["admin_id"] = db.getUserID(email)
             else:
                 g.session_data["role"] = 'user'
+                g.session_data["user_id"] = db.getUserID(email)
             return "Logged in", 201
         else:
             return "Unable to authenticate", 401
@@ -111,6 +116,15 @@ def make_league():
     db.makeLeague(league_name, description, organization, adminID)
     return "Created league", 201
 
+@app.route("/leagues", methods=["GET"])
+def get_league():
+    league = request.args.get("league")
+    organization = request.args.get("organization")
+    db = IntramurallDB()
+    league_info = db.getLeague(league, organization)
+    print(league_info)
+    return league_info, 200
+
 @app.route("/admin-leagues", methods=["GET"])
 def getAdminLeagues():
     adminID = g.session_data["admin_id"]
@@ -124,6 +138,28 @@ def getOrganizations():
     db = IntramurallDB()
     organizations = db.getOrganizations()
     return organizations, 200
+
+@app.route("/teams", methods=['POST'])
+def createTeam():
+    teamName = request.form['team_name']
+    email = request.form['email']
+    league = request.form['league']
+    organization = request.form['organization']
+
+    '''
+        TODO
+        -verify email is the same as the user logged in
+    '''
+    
+    db = IntramurallDB()
+    if not db.verifyTeamCaptain(email, league, organization):
+        return "Already Created Team", 405
+    
+    #if not db.verifyTeamName(teamName, league, organization):
+        #return "Team Name Already In Use", 405
+
+    db.createTeam(teamName, email, league, organization)
+    return "Created team", 201
 
 def main():
     app.run(port=8080)

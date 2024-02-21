@@ -93,6 +93,47 @@ class IntramurallDB:
         organizations = self.cursor.fetchall()
         return organizations
 
+    def getLeague(self, league, organization):
+        get_league = ("SELECT league_name, description, organization FROM leagues WHERE league_name = %(league)s"
+                      "AND organization = %(organization)s")
+        league_data = {
+            'league': league,
+            'organization': organization
+        }
+
+        self.cursor.execute(get_league, league_data)
+        league_info = self.cursor.fetchall()
+        return league_info
+
+    def createTeam(self, team_name, team_captain, league, organization):
+        make_team = ("INSERT INTO teams (team_name, team_captain, league, organization)"
+                    "VALUES( %(team_name)s, %(team_captain)s, %(league)s, %(organization)s)")
+
+        team_data = {
+            'team_name': team_name,
+            'team_captain': team_captain,
+            'league': league,
+            'organization': organization
+        }
+
+        self.cursor.execute(make_team, team_data)
+        self.cnx.commit()
+
+    def verifyTeamCaptain(self, team_captain, league, organization):
+        check_captain = ("SELECT * FROM teams WHERE team_captain = %(team_captain)s AND league = %(league)s AND organization = %(organization)s")
+
+        captain_data = {
+            'team_captain': team_captain,
+            'league': league,
+            'organization': organization
+        }
+
+        self.cursor.execute(check_captain, captain_data)
+        result = self.cursor.fetchall()
+        if result:
+            return True
+        return False
+        
     def __exit__(self):
         self.cnx.close()
 
@@ -139,5 +180,26 @@ CREATE TABLE leagues (
     description varchar(255),
     organization varchar(255),
     adminID int
+);
+'''
+
+'''
+describe intramurall.teams;
++--------------+--------------+------+-----+---------+-------+
+| Field        | Type         | Null | Key | Default | Extra |
++--------------+--------------+------+-----+---------+-------+
+| team_name    | varchar(255) | YES  |     | NULL    |       |
+| team_captain | varchar(255) | YES  |     | NULL    |       |
+| league       | varchar(255) | YES  |     | NULL    |       |
+| organization | varchar(255) | YES  |     | NULL    |       |
++--------------+--------------+------+-----+---------+-------+
+'''
+
+'''
+CREATE TABLE teams (
+    team_name varchar(255),
+    team_captain varchar(255),
+    league varchar(255),
+    organization varchar(255)
 );
 '''
