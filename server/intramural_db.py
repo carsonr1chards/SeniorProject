@@ -93,6 +93,18 @@ class IntramurallDB:
         organizations = self.cursor.fetchall()
         return organizations
 
+    def getOrganization(self, team_name, league):
+        get_org = ("SELECT organization FROM teams WHERE league = %(league)s AND team_name = %(team_name)s")
+
+        org_data = {
+            'league': league,
+            'team_name': team_name
+        }
+
+        self.cursor.execute(get_org, org_data)
+        organization = self.cursor.fetchone()
+        return organization
+
     def getLeague(self, league, organization):
         get_league = ("SELECT league_name, description, organization FROM leagues WHERE league_name = %(league)s"
                       "AND organization = %(organization)s")
@@ -131,9 +143,59 @@ class IntramurallDB:
         self.cursor.execute(check_captain, captain_data)
         result = self.cursor.fetchall()
         if result:
-            return True
-        return False
+            return False
+        return True
+
+    def getTeams(self, league, organization):
+        get_teams = ("SELECT team_name, team_captain FROM teams WHERE league = %(league)s AND organization = %(organization)s")
+
+        teams_data = {
+            'league': league,
+            'organization': organization
+        }
+
+        self.cursor.execute(get_teams, teams_data)
+        teams = self.cursor.fetchall()
+        return teams
+
+    def getName(self, email):
+        get_name = ("SELECT firstName, lastName FROM users WHERE email = %(email)s")
+
+        email_data = {
+            'email': email
+        }
+
+        self.cursor.execute(get_name, email_data)
+        name = self.cursor.fetchall()
+        return name
+
+    def getNameViaID(self, userID):
+        get_name = ("SELECT firstName, lastName FROM users WHERE userID = %(userID)s")
+
+        user_data = {
+            'userID': userID
+        }
+
+        self.cursor.execute(get_name, user_data)
+        name = self.cursor.fetchall()
+        return name
         
+    def joinTeam(self, player, userID, team_name, league, organization):
+        join_team = ("INSERT INTO teamRosters (player, userID, team_name, league, organization)"
+                    "VALUES (%(player)s, %(userID)s, %(team_name)s, %(league)s, %(organization)s)")
+        
+        data = {
+            'player': player,
+            'userID': userID,
+            'team_name': team_name,
+            'league': league,
+            'organization': organization
+        }
+
+        self.cursor.execute(join_team, data)
+        self.cnx.commit()
+        
+
     def __exit__(self):
         self.cnx.close()
 
@@ -199,6 +261,29 @@ describe intramurall.teams;
 CREATE TABLE teams (
     team_name varchar(255),
     team_captain varchar(255),
+    league varchar(255),
+    organization varchar(255)
+);
+'''
+
+'''
+describe intramurall.teamRosters;
++--------------+--------------+------+-----+---------+-------+
+| Field        | Type         | Null | Key | Default | Extra |
++--------------+--------------+------+-----+---------+-------+
+| player       | varchar(255) | YES  |     | NULL    |       |
+| userID       | int          | YES  |     | NULL    |       |
+| team_name    | varchar(255) | YES  |     | NULL    |       |
+| league       | varchar(255) | YES  |     | NULL    |       |
+| organization | varchar(255) | YES  |     | NULL    |       |
++--------------+--------------+------+-----+---------+-------+
+'''
+
+'''
+CREATE TABLE teamRosters (
+    player varchar(255),
+    userID int,
+    team_name varchar(255),
     league varchar(255),
     organization varchar(255)
 );
