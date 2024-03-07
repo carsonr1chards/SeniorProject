@@ -62,22 +62,25 @@ class IntramurallDB:
         userID = self.cursor.fetchone()
         return userID[0]
 
-    def makeLeague(self, league_name, description, organization, adminID):
-        make_league = ("INSERT INTO leagues (league_name, description, organization, adminID)"
-                       "values (%(league_name)s, %(description)s, %(organization)s, %(adminID)s)")
+    def makeLeague(self, league_name, description, organization, adminID, startDate, endDate, registrationDate):
+        make_league = ("INSERT INTO leagues (league_name, description, organization, adminID, startDate, endDate, registrationDate)"
+                       "values (%(league_name)s, %(description)s, %(organization)s, %(adminID)s, %(startDate)s, %(endDate)s, %(registrationDate)s)")
 
         league_data = {
             'league_name': league_name,
             'description': description,
             'organization': organization,
-            'adminID': adminID
+            'adminID': adminID,
+            'startDate': startDate,
+            'endDate': endDate,
+            'registrationDate': registrationDate
         }
 
         self.cursor.execute(make_league, league_data)
         self.cnx.commit()
 
     def getAdminLeagues(self, adminID):
-        get_league = ("SELECT league_name, description, organization FROM leagues WHERE adminID = %(adminID)s")
+        get_league = ("SELECT league_name, description, organization, startDate, endDate, registrationDate FROM leagues WHERE adminID = %(adminID)s")
         admin_data = {
             'adminID': adminID
         }
@@ -85,6 +88,17 @@ class IntramurallDB:
         self.cursor.execute(get_league, admin_data)
         leagues = self.cursor.fetchall()
         return leagues
+
+    def getAdminLeague(self, adminID, league_name):
+        get_league = ("SELECT league_name, description, organization, startDate, endDate, registrationDate FROM leagues WHERE adminID = %(adminID)s AND league_name = %(league_name)s")
+        admin_data = {
+            'adminID': adminID,
+            'league_name': league_name
+        }
+
+        self.cursor.execute(get_league, admin_data)
+        league = self.cursor.fetchall()
+        return league
 
     def getOrganizations(self):
         get_org = ("SELECT league_name, organization FROM leagues")
@@ -194,7 +208,38 @@ class IntramurallDB:
 
         self.cursor.execute(join_team, data)
         self.cnx.commit()
+    
+    def verifyPlayer(self, name, league, organization, userID):
+        verify_player = ("SELECT * FROM teamRosters WHERE "
+                        "player = %(name)s AND league = %(league)s AND organization = %(organization)s AND userID = %(userID)s")
         
+        player_data = {
+            'name': name,
+            'league': league,
+            'organization': organization,
+            'userID': userID
+        }
+
+        self.cursor.execute(verify_player, player_data)
+        result = self.cursor.fetchall()
+
+        # returns False if player is on another team in this league
+        if result:
+            return False
+        return True
+
+    def getRoster(self, team_name, league, organization):
+        get_roster = ("SELECT player FROM teamRosters WHERE team_name = %(team_name)s AND league = %(league)s AND organization = %(organization)s")
+
+        roster_data = {
+            'team_name': team_name,
+            'league': league,
+            'organization': organization
+        }
+
+        self.cursor.execute(get_roster, roster_data)
+        roster = self.cursor.fetchall()
+        return roster
 
     def __exit__(self):
         self.cnx.close()
@@ -226,14 +271,17 @@ CREATE TABLE users (
 
 '''
 describe intramurall.leagues
-+--------------+--------------+------+-----+---------+-------+
-| Field        | Type         | Null | Key | Default | Extra |
-+--------------+--------------+------+-----+---------+-------+
-| league_name  | varchar(255) | YES  |     | NULL    |       |
-| description  | varchar(255) | YES  |     | NULL    |       |
-| organization | varchar(255) | YES  |     | NULL    |       |
-| adminID      | int          | YES  |     | NULL    |       |
-+--------------+--------------+------+-----+---------+-------+
++------------------+--------------+------+-----+---------+-------+
+| Field            | Type         | Null | Key | Default | Extra |
++------------------+--------------+------+-----+---------+-------+
+| league_name      | varchar(255) | YES  |     | NULL    |       |
+| description      | varchar(255) | YES  |     | NULL    |       |
+| organization     | varchar(255) | YES  |     | NULL    |       |
+| adminID          | int          | YES  |     | NULL    |       |
+| startDate        | varchar(255) | YES  |     | NULL    |       |
+| endDate          | varchar(255) | YES  |     | NULL    |       |
+| registrationDate | varchar(255) | YES  |     | NULL    |       |
++------------------+--------------+------+-----+---------+-------+
 '''
 
 '''
@@ -241,7 +289,10 @@ CREATE TABLE leagues (
     league_name varchar(255),
     description varchar(255),
     organization varchar(255),
-    adminID int
+    adminID int,
+    startDate varchar(255),
+    endDate varchar(255),
+    registrationDate varchar(255)
 );
 '''
 

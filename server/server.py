@@ -123,11 +123,14 @@ def make_league():
     league_name = request.form["league_name"]
     description = request.form["description"]
     organization = request.form["organization"]
+    startDate = request.form["startDate"]
+    endDate = request.form["endDate"]
+    registration = request.form["registration"]
     adminID = g.session_data["admin_id"]
     print("adminID:", adminID)
 
     db = IntramurallDB()
-    db.makeLeague(league_name, description, organization, adminID)
+    db.makeLeague(league_name, description, organization, adminID, startDate, endDate, registration)
     return "Created league", 201
 
 @app.route("/leagues", methods=["GET"])
@@ -145,6 +148,14 @@ def getAdminLeagues():
     leagues = db.getAdminLeagues(adminID)
     print(leagues)
     return leagues, 200
+
+@app.route("/admin-leagues/<league>", methods=["GET"])
+def getAdminLeague(league):
+    adminID = g.session_data["admin_id"]
+    db = IntramurallDB()
+    league = db.getAdminLeague(adminID, league)
+    print(league)
+    return league, 200
 
 @app.route("/organizations", methods=["GET"])
 def getOrganizations():
@@ -204,11 +215,27 @@ def joinTeam():
     print("Organization: ", organization)
     user_id = g.session_data["user_id"]
     player = db.getNameViaID(user_id)
-    player = player[0][0] + ' ' + player[0][1]
-    print("Player: ", player)
+    playerName = player[0][0] + ' ' + player[0][1]
 
-    db.joinTeam(player, user_id, team_name, league, organization)
-    return "Joined team", 201
+    # checks if player is already on a team in this league
+    if db.verifyPlayer(playerName, league, organization, user_id):
+        db.joinTeam(playerName, user_id, team_name, league, organization)
+        return "Joined team", 201
+    return "Unauthorized", 401
+    
+
+@app.route('/rosters', methods =["GET"])
+def getRoster():
+    team = request.args.get('team')
+    league = request.args.get('league')
+
+    db = IntramurallDB()
+    organization = db.getOrganization(team, league)
+    organization = organization[0]
+
+    roster = db.getRoster(team, league, organization)
+    return roster, 200
+
 
 def main():
     app.run(port=8080)
