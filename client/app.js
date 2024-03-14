@@ -727,13 +727,181 @@ function adminPortal(){
     addLeaguesButton.innerHTML = 'Add League';
     addLeaguesContainer.appendChild(addLeaguesButton)
     addLeaguesButton.onclick = function(){
-        addLeague(leagueNameInput.value, descriptionInput.value, organizationInput.value);
+        addLeague(leagueNameInput.value, descriptionInput.value, organizationInput.value, startDateInput.value, endDateInput.value, registrationDateInput.value);
     }
     displayAdminLeagues();
+
+    // create admin league scheduler
+    const adminSchedulerContainer = document.createElement('div');
+    adminSchedulerContainer.setAttribute('id', 'admin-scheduler-container');
+    wrapper.appendChild(adminSchedulerContainer);
+    wrapper.style.gridTemplateRows = "repeat(12, 150px)";
+    const adminSchedulerHeader = document.createElement('h2');
+    adminSchedulerHeader.innerHTML = 'Scheduler';
+    adminSchedulerContainer.appendChild(adminSchedulerHeader);
+    adminSchedulerHeader.setAttribute('id', 'admin-scheduler-header');
+
+    // create league selector
+    const leagueSelectorContainer = document.createElement('div');
+    leagueSelectorContainer.setAttribute('id', 'league-selector-container');
+    adminSchedulerContainer.appendChild(leagueSelectorContainer);
+
+    // create admin schedule display
+    const leagueScheduleDisplay = document.createElement('div');
+    leagueScheduleDisplay.setAttribute('id', 'league-schedule-display');
+    adminSchedulerContainer.appendChild(leagueScheduleDisplay);
+
+    // create scheduler inputs
+    const selectLeague = document.createElement('select');
+    selectLeague.setAttribute('id', 'select-league');
+    adminSchedulerContainer.appendChild(selectLeague);
+
+
+    selectLeague.onchange = function(){
+        var selectedLeague = document.getElementById('select-league').value;
+        if (selectedLeague == ''){
+            var scheduleInputsHTML = '';
+            leagueSelectorContainer.innerHTML = scheduleInputsHTML;
+            calendar = document.querySelector('.calendar');
+                if (calendar){
+                    calendar.remove();
+                }
+            return;
+        } else{
+            scheduleInputsHTML = `
+                <h2>Create Schedule</h2>
+                <label for="start-date">Start Date:</label>
+                <input type="date" id='start-date'></input>
+                <label for="end-date">End Date:</label>
+                <input type="date" id='end-date'></input>
+                <label>Games Played On:</label>
+                <div class="dropdown-checkbox">
+                    <button class="dropdown-checkbox-btn">Select Days</button>
+                    <div class="dropdown-checkbox-content">
+                        <label><input type="checkbox" value="sunday"> Sunday</label>
+                        <label><input type="checkbox" value="monday"> Monday</label>
+                        <label><input type="checkbox" value="tuesday"> Tuesday</label>
+                        <label><input type="checkbox" value="wednesday"> Wednesday</label>
+                        <label><input type="checkbox" value="thursday"> Thursday</label>
+                        <label><input type="checkbox" value="friday"> Friday</label>
+                        <label><input type="checkbox" value="saturday"> Saturday</label>
+                    </div>
+                </div>
+                <label for="start-time">Start Time:</label>
+                <input type="time" id="start-time" name="start-time">
+
+                <label for="end-time">End Time:</label>
+                <input type="time" id="end-time" name="end-time">
+                <button id="create-schedule-button">Create</button>
+            `;
+        }
+    
+        leagueSelectorContainer.innerHTML = scheduleInputsHTML;
+        
+        // JavaScript to handle the dropdown checkbox functionality
+        const dropdownBtn = document.querySelector('.dropdown-checkbox-btn');
+        const dropdownContent = document.querySelector('.dropdown-checkbox-content');
+
+        dropdownBtn.addEventListener('click', function(event) {
+            dropdownContent.classList.toggle('show');
+            event.stopPropagation();
+        });
+
+        dropdownContent.addEventListener('click', function(event) {
+            event.stopPropagation();
+        });
+
+        // Close the dropdown when the user clicks outside of it
+        window.addEventListener('click', function() {
+            dropdownContent.classList.remove('show');
+        });
+
+        fetch("http://localhost:8080/admin-leagues/" + selectedLeague,{
+            credentials: 'include',
+        }).then(function(response){
+            response.json().then(function(data){
+                var startDate = document.getElementById('start-date');
+                var endDate = document.getElementById('end-date');
+
+                league = data[0];
+                startDate.value = league[3];
+                endDate.value = league[4];
+                startDate.disabled = true;
+                endDate.disabled = true;
+                calendar = document.querySelector('.calendar');
+                if (calendar){
+                    calendar.remove();
+                }
+                createAdminCalendar(leagueScheduleDisplay, league[3]);
+            })
+        })
+
+
+        const createButton = document.getElementById('create-schedule-button');
+        createButton.addEventListener('click', function() {
+
+            const startDate = document.getElementById('start-date').value;
+            const endDate = document.getElementById('end-date').value;
+            const startTime = document.getElementById('start-time').value;
+            const endTime = document.getElementById('end-time').value;
+            const daysCheckboxes = document.querySelectorAll('.dropdown-checkbox-content input[type="checkbox"]');
+            
+            console.log(startDate, endDate, startTime, endTime);
+            // Check if any input field is empty
+            if (startDate === '' || endDate === '' || startTime === '' || endTime === '') {
+                alert('Please fill in all fields before creating the schedule.');
+                return;
+            }
+
+            // Check if at least one checkbox is checked
+            let atLeastOneChecked = false;
+            for (let i = 0; i < daysCheckboxes.length; i++) {
+                if (daysCheckboxes[i].checked) {
+                    atLeastOneChecked = true;
+                    break;
+                }
+            }
+
+            if (!atLeastOneChecked) {
+                alert('Please select at least one day for the schedule.');
+                return;
+            }
+
+        });
+    }
+    
+
+    
+    fetch("http://localhost:8080/admin-leagues",{
+        credentials: 'include',
+    }).then(function(response){
+        response.json().then(function(data){
+            const leagues = data;
+    
+            // Clear any existing options
+            selectLeague.innerHTML = '';
+    
+            // Create and append an empty option
+            var emptyOption = document.createElement('option');
+            emptyOption.setAttribute('value', '');
+            emptyOption.textContent = 'Select a league';
+            selectLeague.appendChild(emptyOption);
+    
+            // Populate the dropdown with fetched data
+            leagues.forEach(function(league){
+                var option = document.createElement('option');
+                option.setAttribute('class', 'schedule-inputs');
+                option.value = league[0];
+                option.textContent = league[0];
+                selectLeague.appendChild(option);
+            });
+        });
+    });
 }
 
-function addLeague(league, description, organization){
-    data = "league_name=" + league + "&" + "description=" + description + "&" + "organization=" + organization;
+function addLeague(league, description, organization, start, end, registration){
+    data = "league_name=" + league + "&" + "description=" + description + "&" + "organization=" + organization + "&startDate=" + start + "&endDate=" + end + "&registration=" + registration;
+    console.log(data);
     fetch("http://localhost:8080/leagues",{
         credentials: 'include',
         method: 'POST',
@@ -789,6 +957,15 @@ function displayAdminLeagues(){
             var organizationHeader = document.createElement('th');
             organizationHeader.innerHTML = 'Organization';
             leaguesTableHeader.appendChild(organizationHeader);
+            var startHeader = document.createElement('th');
+            startHeader.innerHTML = 'Start';
+            leaguesTableHeader.appendChild(startHeader);
+            var endHeader = document.createElement('th');
+            endHeader.innerHTML = 'End';
+            leaguesTableHeader.appendChild(endHeader);
+            var registrationHeader = document.createElement('th');
+            registrationHeader.innerHTML = 'Registration Open';
+            leaguesTableHeader.appendChild(registrationHeader);
             header = document.createElement('th');
             leaguesTableHeader.appendChild(header);
             adminLeaguesTable.appendChild(leaguesTableHeader);
@@ -824,6 +1001,101 @@ function displayAdminLeagues(){
     })
 }
 
+function createAdminCalendar(display, startDate) {
+    console.log("Start date: ", startDate);
+    var calendar = document.createElement('div');
+    calendar.setAttribute('class', 'calendar');
+
+    const [startYear, startMonth] = startDate.split('-').map(Number);
+    const startDateObject = new Date(startYear, startMonth - 1, 1);
+    const daysInMonth = new Date(startYear, startMonth, 0).getDate();
+    const firstDayOfMonth = startDateObject.getDay();
+    const daysOfWeek = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+    // Create calendar HTML
+    let calendarHTML = `
+        <div class="month">
+            <img src="images/left-arrow.svg" id="left-arrow-calendar"></img>
+            <h2>${startDateObject.toLocaleString('default', { month: 'long' })} ${startYear}</h2>
+            <img src="images/right-arrow.svg" id="right-arrow-calendar"></img>
+        </div>
+        <div class="days">
+    `;
+
+    // Add empty placeholders for the days before the first day of the month
+    for (let i = 0; i < firstDayOfMonth; i++) {
+        calendarHTML += `<div class="day"></div>`;
+    }
+
+    // Add days of the month
+    for (let i = 1; i <= daysInMonth; i++) {
+        calendarHTML += `<div class="day">${i}</div>`;
+    }
+    calendarHTML += `</div>`;
+    display.appendChild(calendar);
+    calendar.innerHTML = calendarHTML;
+
+    leftArrow = document.querySelector("#left-arrow-calendar");
+    leftArrow.onclick = function(){
+        calendar = document.querySelector('.calendar');
+        if (calendar){
+            calendar.remove();
+        }
+        newDate = decreaseMonth(startDate);
+        createAdminCalendar(display, newDate);
+    }
+
+    rightArrow = document.querySelector("#right-arrow-calendar");
+    rightArrow.onclick = function(){
+        calendar = document.querySelector('.calendar');
+        if (calendar){
+            calendar.remove();
+        }
+        newDate = increaseMonth(startDate);
+        createAdminCalendar(display, newDate);
+    }
+}
+
+function decreaseMonth(dateString) {
+    // Split the string by '-'
+    let dateParts = dateString.split('-');
+    
+    // Convert the parts to integers
+    let year = parseInt(dateParts[0]);
+    let month = parseInt(dateParts[1]);
+    let day = 1;
+
+    month = month - 1;
+    if (month == 0){
+        month = 12;
+        year = year - 1;
+    }
+    
+    return `${String(year)}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+}
+
+
+
+function increaseMonth(dateString) {
+    // Split the string by '-'
+    let dateParts = dateString.split('-');
+    
+    // Convert the parts to integers
+    let year = parseInt(dateParts[0]);
+    let month = parseInt(dateParts[1]);
+    let day = 1;
+
+    month = month + 1;
+    if (month == 13){
+        month = 1;
+        year = year + 1;
+    }
+    
+    return `${String(year)}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+}
+
+
+
 
 
 function clearPage(){
@@ -837,6 +1109,7 @@ function clearPage(){
         leagueDisplay = document.querySelector("#league-display");
         leagueDisplay.remove();
     }
+    wrapper.style.gridTemplateRows = "repeat(6, 150px)";
 }
 
 function displayHomePage(){
@@ -852,6 +1125,33 @@ function displayAdminPortal(){
     document.querySelector("#admin-leagues-container").style.display = "block";
     document.querySelector("#welcome-header-container").style.display = "block";
     document.querySelector("#admin-leagues").style.display = "block";
-    document.querySelector("#add-leagues-container").style.display = "flex";
+    document.querySelector("#add-leagues-container").style.display = "grid";
     document.querySelector("#welcome-header").innerHTML = "IntramurALL Admin";
+    document.querySelector("#admin-scheduler-container").style.display = 'grid';
+    document.querySelector("#league-inputs-left").style.display = "flex";
+    document.querySelector("#league-inputs-right").style.display = "flex";
+    document.querySelector("#league-schedule-display").style.display = 'block';
+    document.querySelector("#league-selector-container").style.display = 'flex';
+    
+    var calendarElements = document.getElementsByClassName("calendar");
+    for (var i = 0; i < calendarElements.length; i++) {
+        calendarElements[i].style.display = 'block';
+    }
+
+    var daysElements = document.getElementsByClassName("days");
+    for (var i = 0; i < daysElements.length; i++) {
+        daysElements[i].style.display = 'grid';
+    }
+
+    var dayElements = document.getElementsByClassName("day");
+    for (var i = 0; i < dayElements.length; i++) {
+        dayElements[i].style.display = 'block';
+    }
+
+    var monthElements = document.getElementsByClassName("month");
+    for (var i = 0; i < monthElements.length; i++) {
+        monthElements[i].style.display = 'block';
+    }
+
+    wrapper.style.gridTemplateRows = "repeat(12, 150px)";
 }
