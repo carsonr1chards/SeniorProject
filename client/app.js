@@ -107,7 +107,6 @@ function createHomePage (){
     var navList = document.getElementById("nav-list");
 
     if (navList !== null){
-        console.log(navList);
         navList.style.display = 'flex';
         displayHomePage();
         return;
@@ -224,6 +223,59 @@ function createHomePage (){
     upcomingGamesHeader.setAttribute('id', 'upcoming-games-header');
     upcomingGamesHeader.innerHTML = "Upcoming Games";
     upcomingGamesContainer.appendChild(upcomingGamesHeader);
+
+    upcomingGames = document.createElement('div');
+    upcomingGames.setAttribute("id","upcoming-games-div");
+    upcomingGamesContainer.appendChild(upcomingGames);
+
+    // fetch request to get all games that player is scheduled for
+        //populate games for each date ul
+            // for each game li
+
+    fetch('http://localhost:8080/games', {
+        credentials: "include"
+    }).then(function(response) {
+        if (response.status == 200) {
+            response.json().then(function(games) {
+                if (Object.keys(games).length === 0) {
+                    // if player is not scheduled for any upcoming games
+                    message = document.createElement('p');
+                    message.innerHTML = "No upcoming games.";
+                    message.style.textAlign = 'center';
+                    upcomingGames.appendChild(message);
+                } else {
+                    var currentDate = new Date();
+                    currentDate.setHours(0, 0, 0, 0);
+                    for (var day in games) {
+                        date = new Date(day);
+                        date.setDate(date.getDate() + 1);
+                        if (date >= currentDate || date.toDateString() == currentDate.toDateString()) {
+                            dateElement = document.createElement('h3');
+                            dateElement.setAttribute('class', 'upcoming-games-date');
+                            dateElement.innerHTML = formatDate(day);
+                            upcomingGames.appendChild(dateElement);
+    
+                            gamesList = document.createElement('ul');
+                            gamesList.setAttribute('class', 'games-list');
+    
+                            games[day].forEach(function(game) {
+                                gameLi = document.createElement('li');
+                                gameLi.innerHTML = game['teams'][0] + " vs. " + game['teams'][1] + " at " + convertToStandardTime(game['time']);
+                                gamesList.appendChild(gameLi);
+                            });
+                            upcomingGames.appendChild(gamesList);
+                        }
+                    }
+                }
+            });
+        } else {
+            // if player is not scheduled for any upcoming games
+            message = document.createElement('p');
+            message.innerHTML = "No upcoming games.";
+            message.style.textAlign = 'center';
+            upcomingGames.appendChild(message);
+        }
+    });     
 }
 
 function logout(){
@@ -344,9 +396,8 @@ function loadDataFromServer(){
             header.style.gridColumn = '0/1'
             header.style.gridRow = '0/-1'
             intramurallText.style.display = 'none';
-
-            createHomePage();
             isAdmin();
+            createHomePage();
         }
     })
 }
@@ -628,6 +679,22 @@ function isAdmin(){
             if (adminIcon !== null){
                 return;
             }
+
+            var upcomingGames = document.getElementById("upcoming-games-div");
+            if (upcomingGames.children.length > 1){
+                upcomingGames.remove();
+
+                upcomingGames = document.createElement("div");
+                upcomingGames.setAttribute('id', 'upcoming-games-div');
+
+                message = document.createElement('p');
+                message.innerHTML = 'No upcoming games.';
+                message.style.textAlign = "center";
+                upcomingGames.appendChild(message);
+
+                container = document.querySelector("#upcoming-games-container");
+                container.appendChild(upcomingGames);
+            }
             var adminIcon = document.createElement("img");
             adminIcon.setAttribute('id', 'admin-icon');
             adminIcon.src = "/images/Admin-Icon.svg";
@@ -644,6 +711,71 @@ function isAdmin(){
                     clearPage();
                     displayAdminPortal();
                 }
+            }
+        } else {
+            var adminIcon = document.getElementById("admin-icon");
+            if (adminIcon !== null){
+                adminIcon.remove();
+
+                var navList = document.querySelector("#nav-list");
+                navList.removeChild(navList.lastElementChild);
+                
+                upcomingGames = document.querySelector("#upcoming-games-div");
+                if (upcomingGames){
+                    upcomingGames.remove();
+                }
+                upcomingGames = document.createElement('div');
+                upcomingGames.setAttribute("id","upcoming-games-div");
+                upcomingGamesContainer.appendChild(upcomingGames);
+
+                // fetch request to get all games that player is scheduled for
+                    //populate games for each date ul
+                        // for each game li
+
+                fetch('http://localhost:8080/games', {
+                    credentials: "include"
+                }).then(function(response) {
+                    if (response.status == 200) {
+                        response.json().then(function(games) {
+                            if (Object.keys(games).length === 0) {
+                                // if player is not scheduled for any upcoming games
+                                message = document.createElement('p');
+                                message.innerHTML = "No upcoming games.";
+                                message.style.textAlign = 'center';
+                                upcomingGames.appendChild(message);
+                            } else {
+                                var currentDate = new Date();
+                                currentDate.setHours(0, 0, 0, 0);
+                                for (var day in games) {
+                                    date = new Date(day);
+                                    date.setDate(date.getDate() + 1);
+                                    if (date >= currentDate || date.toDateString() == currentDate.toDateString()) {
+                                        dateElement = document.createElement('h3');
+                                        dateElement.setAttribute('class', 'upcoming-games-date');
+                                        dateElement.innerHTML = formatDate(day);
+                                        upcomingGames.appendChild(dateElement);
+                
+                                        gamesList = document.createElement('ul');
+                                        gamesList.setAttribute('class', 'games-list');
+                
+                                        games[day].forEach(function(game) {
+                                            gameLi = document.createElement('li');
+                                            gameLi.innerHTML = game['teams'][0] + " vs. " + game['teams'][1] + " at " + convertToStandardTime(game['time']);
+                                            gamesList.appendChild(gameLi);
+                                        });
+                                        upcomingGames.appendChild(gamesList);
+                                    }
+                                }
+                            }
+                        });
+                    } else {
+                        // if player is not scheduled for any upcoming games
+                        message = document.createElement('p');
+                        message.innerHTML = "No upcoming games.";
+                        message.style.textAlign = 'center';
+                        upcomingGames.appendChild(message);
+                    }
+                });
             }
         }
     })
@@ -756,122 +888,6 @@ function adminPortal(){
     selectLeague.setAttribute('id', 'select-league');
     adminSchedulerContainer.appendChild(selectLeague);
 
-
-    selectLeague.onchange = function(){
-        var selectedLeague = document.getElementById('select-league').value;
-        if (selectedLeague == ''){
-            var scheduleInputsHTML = '';
-            leagueSelectorContainer.innerHTML = scheduleInputsHTML;
-            calendar = document.querySelector('.calendar');
-                if (calendar){
-                    calendar.remove();
-                }
-            return;
-        } else{
-            scheduleInputsHTML = `
-                <h2>Create Schedule</h2>
-                <label for="start-date">Start Date:</label>
-                <input type="date" id='start-date'></input>
-                <label for="end-date">End Date:</label>
-                <input type="date" id='end-date'></input>
-                <label>Games Played On:</label>
-                <div class="dropdown-checkbox">
-                    <button class="dropdown-checkbox-btn">Select Days</button>
-                    <div class="dropdown-checkbox-content">
-                        <label><input type="checkbox" value="sunday"> Sunday</label>
-                        <label><input type="checkbox" value="monday"> Monday</label>
-                        <label><input type="checkbox" value="tuesday"> Tuesday</label>
-                        <label><input type="checkbox" value="wednesday"> Wednesday</label>
-                        <label><input type="checkbox" value="thursday"> Thursday</label>
-                        <label><input type="checkbox" value="friday"> Friday</label>
-                        <label><input type="checkbox" value="saturday"> Saturday</label>
-                    </div>
-                </div>
-                <label for="start-time">Start Time:</label>
-                <input type="time" id="start-time" name="start-time">
-
-                <label for="end-time">End Time:</label>
-                <input type="time" id="end-time" name="end-time">
-                <button id="create-schedule-button">Create</button>
-            `;
-        }
-    
-        leagueSelectorContainer.innerHTML = scheduleInputsHTML;
-        
-        // JavaScript to handle the dropdown checkbox functionality
-        const dropdownBtn = document.querySelector('.dropdown-checkbox-btn');
-        const dropdownContent = document.querySelector('.dropdown-checkbox-content');
-
-        dropdownBtn.addEventListener('click', function(event) {
-            dropdownContent.classList.toggle('show');
-            event.stopPropagation();
-        });
-
-        dropdownContent.addEventListener('click', function(event) {
-            event.stopPropagation();
-        });
-
-        // Close the dropdown when the user clicks outside of it
-        window.addEventListener('click', function() {
-            dropdownContent.classList.remove('show');
-        });
-
-        fetch("http://localhost:8080/admin-leagues/" + selectedLeague,{
-            credentials: 'include',
-        }).then(function(response){
-            response.json().then(function(data){
-                var startDate = document.getElementById('start-date');
-                var endDate = document.getElementById('end-date');
-
-                league = data[0];
-                startDate.value = league[3];
-                endDate.value = league[4];
-                startDate.disabled = true;
-                endDate.disabled = true;
-                calendar = document.querySelector('.calendar');
-                if (calendar){
-                    calendar.remove();
-                }
-                createAdminCalendar(leagueScheduleDisplay, league[3]);
-            })
-        })
-
-
-        const createButton = document.getElementById('create-schedule-button');
-        createButton.addEventListener('click', function() {
-
-            const startDate = document.getElementById('start-date').value;
-            const endDate = document.getElementById('end-date').value;
-            const startTime = document.getElementById('start-time').value;
-            const endTime = document.getElementById('end-time').value;
-            const daysCheckboxes = document.querySelectorAll('.dropdown-checkbox-content input[type="checkbox"]');
-            
-            console.log(startDate, endDate, startTime, endTime);
-            // Check if any input field is empty
-            if (startDate === '' || endDate === '' || startTime === '' || endTime === '') {
-                alert('Please fill in all fields before creating the schedule.');
-                return;
-            }
-
-            // Check if at least one checkbox is checked
-            let atLeastOneChecked = false;
-            for (let i = 0; i < daysCheckboxes.length; i++) {
-                if (daysCheckboxes[i].checked) {
-                    atLeastOneChecked = true;
-                    break;
-                }
-            }
-
-            if (!atLeastOneChecked) {
-                alert('Please select at least one day for the schedule.');
-                return;
-            }
-
-        });
-    }
-    
-
-    
     fetch("http://localhost:8080/admin-leagues",{
         credentials: 'include',
     }).then(function(response){
@@ -897,7 +913,305 @@ function adminPortal(){
             });
         });
     });
+
+    selectLeague.onchange = function(){
+        var selectedLeague = document.getElementById('select-league').value;
+        if (selectedLeague == ''){
+            var scheduleInputsHTML = '';
+            leagueSelectorContainer.innerHTML = scheduleInputsHTML;
+            calendar = document.querySelector('.calendar');
+                if (calendar){
+                    calendar.remove();
+                }
+
+            scheduleTable = document.querySelector('#admin-schedule-table');
+            if (scheduleTable){
+                scheduleTable.remove();
+            }
+            return;
+        } else{
+            scheduleExists(selectedLeague).then(function(response){
+                if (response != false){
+                    scheduleInputsHTML = `
+                    <h2>Edit Schedule</h2>
+                    <p>Select a Day to Begin</p>
+                    `
+                    schedule = response[0][2]
+                    leagueSelectorContainer.innerHTML = scheduleInputsHTML;
+
+                    // populate schedule into calendar display
+                    schedule = JSON.parse(schedule)
+
+                    var scheduleTable = `
+                        <table id="admin-schedule-table">
+                            <tr>
+                                <th>Time</th>
+                                <th>Home</th>
+                                <th>Away</th>
+                            </tr>
+                        </table>
+                    `
+
+                    leagueScheduleDisplay.innerHTML = scheduleTable;
+                    
+                    var table = document.querySelector("#admin-schedule-table");
+
+                    for (let key in schedule) {
+                        var day = schedule[key];
+                        var dateRow = document.createElement('tr');
+                        td = document.createElement('td');
+                        td.innerHTML = key;
+                        dateRow.appendChild(td);
+                        dateRow.setAttribute('class', 'date-row');
+                        table.appendChild(dateRow);
+                        for (let time in day) {
+                            if (day[time].length > 0){
+                                var games = day[time];
+                                for (let game in games){
+                                    var row = document.createElement('tr');
+                                    var gameTime = document.createElement('td');
+                                    gameTime.innerHTML = convertToStandardTime(time);
+                                    var home = document.createElement('td');
+                                    home.innerHTML = games[game][0];
+
+                                    var away = document.createElement('td');
+                                    away.innerHTML = games[game][1];
+
+                                    row.appendChild(gameTime);
+                                    row.appendChild(home);
+                                    row.appendChild(away);
+                                    table.appendChild(row);
+                                }
+                            }
+                        }
+                    }
+                    
+                    
+                } else {
+                    scheduleInputsHTML = `
+                        <h2>Create Schedule</h2>
+                        <label for="start-date">Start Date:</label>
+                        <input type="date" id='start-date'></input>
+                        <label for="end-date">End Date:</label>
+                        <input type="date" id='end-date'></input>
+                        <label>Games Played On:</label>
+                        <div class="dropdown-checkbox">
+                            <button class="dropdown-checkbox-btn">Select Days</button>
+                            <div class="dropdown-checkbox-content">
+                                <label><input type="checkbox" value=6> Sunday</label>
+                                <label><input type="checkbox" value=0> Monday</label>
+                                <label><input type="checkbox" value=1> Tuesday</label>
+                                <label><input type="checkbox" value=2> Wednesday</label>
+                                <label><input type="checkbox" value=3> Thursday</label>
+                                <label><input type="checkbox" value=4> Friday</label>
+                                <label><input type="checkbox" value=5> Saturday</label>
+                            </div>
+                        </div>
+                        <label for="num-fields">Number of fields/courts:</label>
+                        <input type="number" min="1" id="num-fields" name="num-fields">
+                        <label for="start-time">Start Time:</label>
+                        <input type="time" id="start-time" name="start-time">
+    
+                        <label for="end-time">End Time:</label>
+                        <input type="time" id="end-time" name="end-time">
+                        <button id="create-schedule-button">Create</button>
+                    `;
+            
+                    leagueSelectorContainer.innerHTML = scheduleInputsHTML;
+                    
+                    // JavaScript to handle the dropdown checkbox functionality
+                    const dropdownBtn = document.querySelector('.dropdown-checkbox-btn');
+                    const dropdownContent = document.querySelector('.dropdown-checkbox-content');
+    
+                    dropdownBtn.addEventListener('click', function(event) {
+                        dropdownContent.classList.toggle('show');
+                        event.stopPropagation();
+                    });
+    
+                    dropdownContent.addEventListener('click', function(event) {
+                        event.stopPropagation();
+                    });
+    
+                    // Close the dropdown when the user clicks outside of it
+                    window.addEventListener('click', function() {
+                        dropdownContent.classList.remove('show');
+                    });
+    
+                    fetch("http://localhost:8080/admin-leagues/" + selectedLeague,{
+                        credentials: 'include',
+                    }).then(function(response){
+                        response.json().then(function(data){
+                            var startDate = document.getElementById('start-date');
+                            var endDate = document.getElementById('end-date');
+    
+                            league = data[0];
+                            startDate.value = league[3];
+                            endDate.value = league[4];
+                            startDate.disabled = true;
+                            endDate.disabled = true;
+                            calendar = document.querySelector('.calendar');
+                            if (calendar){
+                                calendar.remove();
+                            }
+                            createAdminCalendar(leagueScheduleDisplay, league[3]);
+                        })
+                    })
+    
+    
+                    const createButton = document.getElementById('create-schedule-button');
+                    createButton.addEventListener('click', function() {
+    
+                        const startDate = document.getElementById('start-date').value;
+                        const endDate = document.getElementById('end-date').value;
+                        const startTime = document.getElementById('start-time').value;
+                        const endTime = document.getElementById('end-time').value;
+                        const daysCheckboxes = document.querySelectorAll('.dropdown-checkbox-content input[type="checkbox"]');
+                        
+                        console.log(startDate, endDate, startTime, endTime);
+                        // Check if any input field is empty
+                        if (startDate === '' || endDate === '' || startTime === '' || endTime === '') {
+                            alert('Please fill in all fields before creating the schedule.');
+                            return;
+                        }
+    
+                        // Check if at least one checkbox is checked
+                        let atLeastOneChecked = false;
+                        for (let i = 0; i < daysCheckboxes.length; i++) {
+                            if (daysCheckboxes[i].checked) {
+                                atLeastOneChecked = true;
+                                break;
+                            }
+                        }
+    
+                        if (!atLeastOneChecked) {
+                            alert('Please select at least one day for the schedule.');
+                            return;
+                        }
+                        createSchedule();
+                    });
+                }
+            });
+        }
+    }
 }
+
+function createSchedule() {
+    var startDate = document.getElementById('start-date').value;
+    var endDate = document.getElementById('end-date').value;
+    var days = [];
+    var checkboxes = document.querySelectorAll('.dropdown-checkbox-content input[type="checkbox"]');
+    checkboxes.forEach(function(checkbox) {
+        if (checkbox.checked) {
+            days.push(parseInt(checkbox.value)); // Parse value to integer
+        }
+    });
+    var numFields = document.getElementById('num-fields').value;
+    var startTime = document.getElementById('start-time').value;
+    var endTime = document.getElementById('end-time').value;
+    var selectedLeague = document.getElementById('select-league').value;
+    let league_name = encodeURIComponent(selectedLeague)
+
+    // fetches the organization name so that the schedule can be created
+    fetch('http://localhost:8080/admin-leagues/' + league_name, {
+        credentials: 'include'
+    }).then(function(response){
+        if (response.status == 200){
+            response.json().then(function(organization){
+                var org = organization[0][2];
+                
+                // Constructing form data
+                var formData = new URLSearchParams();
+                formData.append('start_date', startDate);
+                formData.append('end_date', endDate);
+                formData.append('days', JSON.stringify(days));
+                formData.append('num_fields', numFields);
+                formData.append('league', selectedLeague);
+                formData.append('organization', org);
+                formData.append('start_time', startTime);
+                formData.append('end_time', endTime);
+
+                fetch('http://localhost:8080/schedules',{
+                    credentials: 'include',
+                    method: 'POST',
+                    body: formData, // Use formData here
+                    headers: {
+                    }
+                }).then(function(response){
+                    if (response.status == 201){
+                        console.log("Successfully created schedule");
+                    }
+                });
+            });
+        }
+    });
+}
+
+// checks if schedule already exists for selected team, returns T/F
+function scheduleExists(selectedLeague) {
+    return new Promise((resolve, reject) => {
+        var league = encodeURIComponent(selectedLeague);
+        fetch('http://localhost:8080/schedules/' + league, {
+            credentials: 'include'
+        }).then(function (response) {
+            if (response.status == 200) {
+                response.json().then(function (schedule) {
+                    if (Object.keys(schedule).length === 0 && schedule.constructor === Object) {
+                        resolve(false);
+                    } else {
+                        resolve(schedule);
+                    }
+                });
+            } else {
+                reject("Error fetching schedule");
+            }
+        }).catch(function (error) {
+            reject(error);
+        });
+    });
+}
+
+function formatDate(dateString) {
+    var parts = dateString.split('-');
+    
+    // Rearrange the parts to the desired format (mm-dd-yyyy)
+    var formattedDate = parts[1] + '-' + parts[2] + '-' + parts[0];
+    
+    return formattedDate;
+}
+
+function convertToStandardTime(militaryTime) {
+    // Splitting the military time string into hours and minutes
+    const [hours, minutes] = militaryTime.split(':').map(Number);
+
+    // Determining AM/PM
+    const period = hours >= 12 ? 'PM' : 'AM';
+
+    let standardHours = hours % 12;
+    standardHours = standardHours || 12;
+
+    const standardMinutes = (minutes < 10 ? '0' : '') + minutes;
+
+    const standardTime = `${standardHours}:${standardMinutes} ${period}`;
+
+    return standardTime;
+}
+
+function convertToMilitaryTime(standardTime) {
+    // Splitting the standard time string into hours, minutes, and period (AM/PM)
+    const [time, period] = standardTime.split(' ');
+    const [hours, minutes] = time.split(':').map(Number);
+
+    let militaryHours = hours % 12;
+    militaryHours += period === 'PM' ? 12 : 0;
+    militaryHours = militaryHours.toString().padStart(2, '0'); // Adding leading zero if necessary
+
+    const militaryMinutes = (minutes < 10 ? '0' : '') + minutes;
+
+    const militaryTime = `${militaryHours}:${militaryMinutes}`;
+
+    return militaryTime;
+}
+
 
 function addLeague(league, description, organization, start, end, registration){
     data = "league_name=" + league + "&" + "description=" + description + "&" + "organization=" + organization + "&startDate=" + start + "&endDate=" + end + "&registration=" + registration;
@@ -1094,10 +1408,6 @@ function increaseMonth(dateString) {
     return `${String(year)}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
 }
 
-
-
-
-
 function clearPage(){
     var wrapper = document.querySelector("#wrapper");
     var divsInsideWrapper = wrapper.querySelectorAll("div");
@@ -1119,6 +1429,7 @@ function displayHomePage(){
     document.querySelector("#welcome-header").innerHTML = "Welcome to IntramurALL"
     document.querySelector("#organization-selector-container").style.display = 'block';
     document.querySelector("#leagues-table-container").style.display = 'block';
+    document.querySelector("#upcoming-games-div").style.display = 'block';
 }
 
 function displayAdminPortal(){
@@ -1150,7 +1461,7 @@ function displayAdminPortal(){
 
     var monthElements = document.getElementsByClassName("month");
     for (var i = 0; i < monthElements.length; i++) {
-        monthElements[i].style.display = 'block';
+        monthElements[i].style.display = 'flex';
     }
 
     wrapper.style.gridTemplateRows = "repeat(12, 150px)";

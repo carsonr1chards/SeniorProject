@@ -24,3 +24,8 @@ class SessionStore:
             return self.sessionData[sessionId]
         else:
             return None
+
+    def deleteSession(self, sessionId):
+        # Delete a session from the session store
+        if sessionId in self.sessionData:
+            del self.sessionData[sessionId]

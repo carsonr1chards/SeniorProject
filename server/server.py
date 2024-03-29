@@ -1,7 +1,11 @@
-from flask import Flask, request, g, send_file
+from flask import Flask, request, g, send_file, jsonify, session
 from intramural_db import IntramurallDB
 from passlib.hash import bcrypt
 from session_store import SessionStore
+from datetime import datetime, timedelta
+import random
+import json
+import itertools
 
 session_store = SessionStore()
 
@@ -107,6 +111,11 @@ def logout_user():
     print(g.session_data)
     if "user_session_id" in g.session_data:
         del g.session_data["user_session_id"]
+        if g.session_data["role"] == "admin":
+            del g.session_data["admin_id"]
+        else:
+            del g.session_data["user_id"]
+        del g.session_data["role"]
         return "Logged out", 201
     return "Unable to log out", 401
 
@@ -169,6 +178,8 @@ def createTeam():
     email = request.form['email']
     league = request.form['league']
     organization = request.form['organization']
+    user_id = g.session_data["user_id"]
+
 
     '''
         TODO
@@ -177,6 +188,8 @@ def createTeam():
     '''
 
     db = IntramurallDB()
+    player = db.getNameViaID(user_id)
+    playerName = player[0][0] + ' ' + player[0][1]
     if not db.verifyTeamCaptain(email, league, organization):
         return "Already Created Team", 401
 
@@ -184,6 +197,7 @@ def createTeam():
         #return "Team Name Already In Use", 401
 
     db.createTeam(teamName, email, league, organization)
+    db.joinTeam(playerName, user_id, teamName, league, organization)
     return "Created team", 201
 
 @app.route("/teams", methods=["GET"])
@@ -236,6 +250,115 @@ def getRoster():
     roster = db.getRoster(team, league, organization)
     return roster, 200
 
+
+def schedule_games(teams, dates, times, num_fields):
+    teams_games_count = {team[0]: 0 for team in teams}
+
+    for date in dates:
+        random.shuffle(teams)
+        teams_remaining = teams[:]
+
+        for time in times:
+            dates[date][time] = []
+
+            # Schedule games according to the number of available fields
+            for _ in range(num_fields):
+                if len(teams_remaining) >= 2:
+                    team1 = teams_remaining.pop()
+                    team2 = teams_remaining.pop(0) if teams_remaining else None
+                    dates[date][time].append((team1[0], team2[0] if team2 else None))
+                    teams_games_count[team1[0]] += 1
+                    if team2:
+                        teams_games_count[team2[0]] += 1
+                else:
+                    break  # No more teams left to schedule
+
+                if not teams_remaining:
+                    break  # No more teams left to schedule
+
+    return teams_games_count
+
+def create_schedules(start_date, end_date, days, num_fields, start_time, end_time, league, organization):
+    start_time = datetime.strptime(start_time, '%H:%M')
+    end_time = datetime.strptime(end_time, '%H:%M')
+    times = [start_time.strftime('%H:%M')]
+    current_time = start_time
+    while current_time < end_time:
+        current_time += timedelta(hours=1)
+        times.append(current_time.strftime('%H:%M'))
+
+    start_date = datetime.strptime(start_date, '%Y-%m-%d')
+    end_date = datetime.strptime(end_date, '%Y-%m-%d')
+    date_range = [start_date + timedelta(days=i) for i in range((end_date - start_date).days + 1)]
+    dates = {date.strftime('%Y-%m-%d'): {} for date in date_range if date.weekday() in days}
+
+    db = IntramurallDB()
+    teams = db.getTeams(league, organization)
+
+    if num_fields * len(times) < len(teams):
+        raise ValueError("Not enough fields available to schedule all teams.")
+
+    teams_games_count = schedule_games(teams, dates, times, num_fields)
+
+    return dates, teams_games_count
+
+@app.route('/schedules', methods=["POST"])
+def create_schedules_endpoint():
+    start_date = request.form['start_date']
+    end_date = request.form['end_date']
+    days = json.loads(request.form['days'])  # Parse JSON string to list
+    num_fields = int(request.form['num_fields'])
+    start_time = request.form['start_time']
+    end_time = request.form['end_time']
+    league = request.form['league']
+    organization = request.form['organization']
+
+    schedule, teams_games_count = create_schedules(start_date, end_date, days, num_fields, start_time, end_time, league, organization)
+    
+    print("Schedules:")
+    print(schedule)
+    print("\nNumber of games for each team:")
+    for team, games_count in teams_games_count.items():
+        print(f"{team}: {games_count} games")
+
+    adminID = g.session_data["admin_id"]
+    if not adminID:
+        return "Unauthorized", 401
+    
+    schedule = json.dumps(schedule)
+    db = IntramurallDB()
+    db.insertSchedule(league, adminID, schedule)
+    # dbschedules = db.getSchedules()
+    # print(dbschedules)
+    return "Created schedule", 201
+
+@app.route('/schedules/<string:league>', methods=["GET"])
+def get_schedule(league):
+    adminID = g.session_data.get("admin_id")
+    if not adminID:
+        return "Unauthorized", 401
+
+    db = IntramurallDB() 
+    schedule = db.getSchedule(league, adminID)
+    
+    if schedule:
+        return schedule, 200
+    return jsonify({}), 200
+
+@app.route('/games', methods=["GET"])
+def get_games():
+    if g.session_data["role"] == "admin":
+        return [], 200
+
+    userID = g.session_data["user_id"]
+    if not userID:
+        return "Unauthorized", 401
+    
+    db = IntramurallDB()
+    games = db.getPlayerGames(userID)
+
+    print("The player is scheduled for these games:", games)
+    return games, 200
 
 def main():
     app.run(port=8080)

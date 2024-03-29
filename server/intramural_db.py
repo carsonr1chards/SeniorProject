@@ -241,6 +241,110 @@ class IntramurallDB:
         roster = self.cursor.fetchall()
         return roster
 
+    def insertSchedule(self, league, adminID, schedule):
+        insert_schedule = ("INSERT INTO schedules (league, adminID, schedule)"
+                           "VALUES (%(league)s, %(adminID)s, %(schedule)s)")
+
+        schedule_data = {
+            'league': league,
+            'adminID': adminID,
+            'schedule': schedule
+        }
+
+        self.cursor.execute(insert_schedule, schedule_data)
+        self.cnx.commit()
+    
+    def getSchedule(self, league, adminID):
+
+        get_schedule = ("SELECT * FROM schedules WHERE league = %(league)s AND adminID = %(adminID)s")
+
+        schedule_data = {
+            'league': league,
+            'adminID': adminID,
+        }
+
+        self.cursor.execute(get_schedule, schedule_data)
+        schedule = self.cursor.fetchall()
+        return schedule
+
+    def getPlayerGames(self, userID):
+        get_teams = ("SELECT * FROM teamRosters WHERE userID = %(userID)s")
+
+        data = {
+            'userID': userID
+        }
+
+        self.cursor.execute(get_teams, data)
+        teams = self.cursor.fetchall()
+
+        if teams == []:
+            return []
+
+        schedules = []
+        teamNames = []
+
+        for team in teams:
+
+            teamNames.append(team[2])
+
+            get_adminID = ("SELECT adminID FROM leagues WHERE league_name = %(league_name)s AND organization = %(organization)s")
+
+            data = {
+                'league_name': team[3],
+                'organization': team[4]
+            }
+
+            self.cursor.execute(get_adminID, data)
+            adminID = self.cursor.fetchone()[0]
+
+            get_games = ("SELECT schedule FROM schedules WHERE adminID = %(adminID)s AND league = %(league)s")
+
+            data = {
+                'adminID': adminID,
+                'league': team[3]
+            }
+
+            self.cursor.execute(get_games, data)
+            games = self.cursor.fetchall()
+            schedules.append(games)
+        
+        # Initialize an empty dictionary to store games grouped by date
+        games_by_date = {}
+
+        i = 0
+        for inner_list in schedules:
+            team_name = teamNames[i]
+            if inner_list:
+                json_string = inner_list[0][0]
+
+                # Convert the JSON string to a dictionary
+                game_schedule = eval(json_string)
+
+                # Loop through the keys (dates) in the game_schedule dictionary
+                for date in game_schedule.keys():
+                    if date not in games_by_date:
+                        games_by_date[date] = []
+
+                    # Loop through the time slots and games on each date
+                    for time, games in game_schedule[date].items():
+                        for game in games:
+                            if team_name in game:
+                                # Append the game to the list for this date
+                                games_by_date[date].append({
+                                    "time": time,
+                                    "teams": game
+                                })
+            i += 1
+
+        return games_by_date
+
+            
+
+        
+
+
+
+
     def __exit__(self):
         self.cnx.close()
 
@@ -337,5 +441,25 @@ CREATE TABLE teamRosters (
     team_name varchar(255),
     league varchar(255),
     organization varchar(255)
+);
+'''
+
+'''
+describe intramurall.schedules;
++----------+---------------+------+-----+---------+-------+
+| Field    | Type          | Null | Key | Default | Extra |
++----------+---------------+------+-----+---------+-------+
+| league   | varchar(255)  | YES  |     | NULL    |       |
+| adminId  | int           | YES  |     | NULL    |       |
+| schedule | JSON          | YES  |     | NULL    |       |
++----------+---------------+------+-----+---------+-------+
+3 rows in set (0.03 sec)
+'''
+
+'''
+CREATE TABLE schedules (
+    league varchar(255),
+    adminId int,
+    schedule JSON
 );
 '''
