@@ -728,10 +728,6 @@ function isAdmin(){
                 upcomingGames.setAttribute("id","upcoming-games-div");
                 upcomingGamesContainer.appendChild(upcomingGames);
 
-                // fetch request to get all games that player is scheduled for
-                    //populate games for each date ul
-                        // for each game li
-
                 fetch('http://localhost:8080/games', {
                     credentials: "include"
                 }).then(function(response) {
@@ -854,12 +850,27 @@ function adminPortal(){
     registrationDateInput.setAttribute('id', 'registration-date-input');
     registrationDateInput.type = 'date';
     leagueInputsRight.appendChild(registrationDateInput);
+    var sport = document.createElement('p');
+    sport.setAttribute('class', 'add-league-input-titles');
+    sport.innerHTML = 'Sport';
+    leagueInputsRight.appendChild(sport);
+    var sportSelector = document.createElement('select');
+    sportSelector.setAttribute('id','sport-selector');
+    sportSelectorHTML = `
+        <option value="">Select</option>
+        <option value="football">Football</option>
+        <option value="basketball">Basketball</option>
+        <option value="soccer">Soccer</option>
+    `
+    sportSelector.innerHTML = sportSelectorHTML;
+    leagueInputsRight.appendChild(sportSelector);
+    
     var addLeaguesButton = document.createElement('button');
     addLeaguesButton.setAttribute('id', 'add-leagues-button');
     addLeaguesButton.innerHTML = 'Add League';
     addLeaguesContainer.appendChild(addLeaguesButton)
     addLeaguesButton.onclick = function(){
-        addLeague(leagueNameInput.value, descriptionInput.value, organizationInput.value, startDateInput.value, endDateInput.value, registrationDateInput.value);
+        addLeague(leagueNameInput.value, descriptionInput.value, organizationInput.value, startDateInput.value, endDateInput.value, registrationDateInput.value, sportSelector.value);
     }
     displayAdminLeagues();
 
@@ -867,9 +878,9 @@ function adminPortal(){
     const adminSchedulerContainer = document.createElement('div');
     adminSchedulerContainer.setAttribute('id', 'admin-scheduler-container');
     wrapper.appendChild(adminSchedulerContainer);
-    wrapper.style.gridTemplateRows = "repeat(12, 150px)";
+    wrapper.style.gridTemplateRows = "repeat(15, 150px)";
     const adminSchedulerHeader = document.createElement('h2');
-    adminSchedulerHeader.innerHTML = 'Scheduler';
+    adminSchedulerHeader.innerHTML = 'Manage Schedule';
     adminSchedulerContainer.appendChild(adminSchedulerHeader);
     adminSchedulerHeader.setAttribute('id', 'admin-scheduler-header');
 
@@ -960,7 +971,7 @@ function adminPortal(){
                         var day = schedule[key];
                         var dateRow = document.createElement('tr');
                         td = document.createElement('td');
-                        td.innerHTML = key;
+                        td.innerHTML = formatDate(key);
                         dateRow.appendChild(td);
                         dateRow.setAttribute('class', 'date-row');
                         table.appendChild(dateRow);
@@ -988,6 +999,10 @@ function adminPortal(){
                     
                     
                 } else {
+                    scheduleTable = document.querySelector('#admin-schedule-table');
+                    if (scheduleTable){
+                        scheduleTable.remove();
+                    }
                     scheduleInputsHTML = `
                         <h2>Create Schedule</h2>
                         <label for="start-date">Start Date:</label>
@@ -1092,6 +1107,280 @@ function adminPortal(){
                 }
             });
         }
+    }
+    createStatsManager();
+}
+
+function createStatsManager() {
+    var adminStatsContainer = document.createElement('div');
+    adminStatsContainer.setAttribute('id', 'admin-stats-container');
+
+    statsContainerHTML = `
+        <h2 id="admin-stats-header" >Manage Stats</h2>
+        <select id="select-league-stats"><select>
+        <div id="stat-input-container"></div>
+    `
+
+    adminStatsContainer.innerHTML = statsContainerHTML;
+
+    wrapper.appendChild(adminStatsContainer);
+
+    selectLeagueStats = document.querySelector("#select-league-stats");
+    fetch("http://localhost:8080/admin-leagues",{
+        credentials: 'include',
+    }).then(function(response){
+        response.json().then(function(data){
+            const leagues = data;
+    
+            // Clear any existing options
+            selectLeagueStats.innerHTML = '';
+    
+            // Create and append an empty option
+            var emptyOption = document.createElement('option');
+            emptyOption.setAttribute('value', '');
+            emptyOption.textContent = 'Select a league';
+            selectLeagueStats.appendChild(emptyOption);
+    
+            // Populate the dropdown with fetched data
+            leagues.forEach(function(league){
+                var option = document.createElement('option');
+                option.setAttribute('class', 'stat-inputs');
+                option.value = league[0];
+                option.textContent = league[0];
+                selectLeagueStats.appendChild(option);
+            });
+        });
+    });
+
+    selectLeagueStats.onchange = function(){
+        if (selectLeagueStats.value == ''){
+            var statInputContainer = document.querySelector("#stat-input-container");
+            statInputContainer.innerHTML = '';
+
+            var teamSelector = document.querySelector("#select-team-stats");
+            if (teamSelector){
+                teamSelector.remove();
+            }
+
+            submitStats = document.querySelector('#submit-stats-button');
+            if (submitStats){
+                submitStats.remove();
+            }
+            selectLeagueStats.style.gridColumn = "3 / 5";
+            return;
+        } else {
+            submitStats = document.querySelector('#submit-stats-button');
+            if (submitStats){
+                submitStats.remove();
+            }
+            var teamSelector = document.querySelector("#select-team-stats");
+            selectLeagueStats.style.gridColumn = "2 / 4";
+
+            var league = encodeURIComponent(selectLeagueStats.value);
+            fetch("http://localhost:8080/sports?league=" + league, {
+                credentials: 'include'
+            }).then(function(response){
+                if (response.status == 200){
+                    response.json().then( function(sport){
+                        sport = sport[0];
+
+                        var inputs = getStatInputs(sport);
+                        var statInputContainer = document.querySelector("#stat-input-container");
+                        statInputContainer.innerHTML = inputs;
+
+
+                        fetch("http://localhost:8080/teams?league=" + league, {
+                            credentials: 'include'
+                        }).then(function(response){
+                            if (response.status == 200){
+                                response.json().then( function(teams){
+                                    var teamSelector = document.querySelector("#select-team-stats");
+                                    if (teamSelector){
+                                        teamSelector.remove();
+                                    }
+
+
+                                    var selectTeamStats = document.createElement('select');
+                                    selectTeamStats.setAttribute('id', 'select-team-stats');
+
+                                    var emptyOption = document.createElement('option');
+                                    emptyOption.setAttribute('value', '');
+                                    emptyOption.textContent = 'Select a team';
+                                    selectTeamStats.appendChild(emptyOption);
+                            
+                                    // Populate the dropdown with fetched data
+                                    teams.forEach(function(team){
+                                        var option = document.createElement('option');
+                                        option.setAttribute('class', 'stat-inputs');
+                                        option.value = team[0];
+                                        option.textContent = team[0];
+                                        selectTeamStats.appendChild(option);
+                                    });
+                                    adminStatsContainer.appendChild(selectTeamStats);
+
+                                    selectTeamStats.onchange = function(){
+                                        if (selectTeamStats.value == ''){
+                                            submitStats = document.querySelector('#submit-stats-button');
+                                            if (submitStats){
+                                                submitStats.remove();
+                                            }
+
+                                            if (statInputTable.children.length > 1) {
+                                                for (let i = statInputTable.children.length - 1; i > 0; i--) {
+                                                    statInputTable.children[i].remove();
+                                                }
+                                            }
+                                        } else {
+                                            if (!document.querySelector("#submit-stats-button")){
+                                                submitStats = document.createElement('button');
+                                                submitStats.setAttribute('id', 'submit-stats-button');
+                                                submitStats.innerHTML = "Submit";
+                                                adminStatsContainer.appendChild(submitStats);
+                                            }
+
+                                            fetch("http://localhost:8080/rosters?league=" + encodeURIComponent(selectLeagueStats.value) + "&team=" + encodeURIComponent(selectTeamStats.value), {
+                                                credentials: 'include'
+                                            }).then(function(response){
+                                                if (response.status == 200){
+                                                    response.json().then(function(roster){
+                                                        
+                                                        roster.forEach(function(player){
+                                                            sth = document.querySelector("#stats-table-headers");
+                                                            var numCol = sth.children.length;
+
+                                                            var row = document.createElement('tr');
+                                                            playerField = document.createElement('td');
+                                                            playerField.innerHTML = player;
+                                                            row.appendChild(playerField);
+
+                                                            inputHTML = `
+                                                                <input type="number" min="0" placeholder="0"class="stat-inputs">
+                                                            `
+                                                            // for loop over each stat column
+                                                            for (i = 0; i < numCol - 1; i++){
+                                                                td = document.createElement('td');
+                                                                td.innerHTML = inputHTML;
+                                                                row.appendChild(td);
+                                                            }
+
+                                                            statInputTable = document.querySelector("#stat-input-table");
+                                                            statInputTable.appendChild(row);
+                                                        })
+                                                    })
+                                                } else {
+                                                    if (statInputTable.children.length > 1) {
+                                                        for (let i = statInputTable.children.length - 1; i > 0; i--) {
+                                                            statInputTable.children[i].remove();
+                                                        }
+                                                    }
+
+                                                    submitStats = document.querySelector('#submit-stats-button');
+                                                    if (submitStats){
+                                                        submitStats.remove();
+                                                    }
+                                                }
+                                            })
+                                            submitStats.onclick = function(){
+                                                var stats = [];
+                                                let inputs = Array.from(statInputTable.children).slice(1);
+                                                
+                                                for (let i = 0; i < inputs.length; i++){
+                                                    let playerStats = {};
+                                                    playerRow = inputs[i].children;
+
+                                                    playerStats["Player"] = playerRow[0].textContent;
+                                                    for (let j = 1; j < playerRow.length; j++){
+                                                        let stat = playerRow[j].children[0].value;
+                                                        playerStats[statInputTable.children[0].children[0].children[j].textContent] = stat
+                                                    }
+                                                    stats.push(playerStats);
+                                                }
+                                                
+                                                fetch('http://localhost:8080/stats?sport=' + sport,{
+                                                    method: 'POST',
+                                                    headers: {
+                                                        'Content-Type': 'application/json',
+                                                    },
+                                                    body: JSON.stringify(stats),
+                                                }).then(function(repsonse){
+                                                    if (response.status == 201){
+                                                        // clear all inputs
+                                                        console.log("Successfully added stats.");
+                                                    } else {
+                                                        // display error
+                                                        console.log("Error with stats.");
+                                                    }
+                                                })
+                                            }
+                                        }
+                                    }
+                                })
+                            } else{
+                                selectLeagueStats.style.gridColumn = "3 / 5";
+                                var teamSelector = document.querySelector("#select-team-stats");
+                                if (teamSelector){
+                                    teamSelector.remove();
+                                }
+                            }
+                        })
+                        
+                    })
+                } 
+            })
+        }
+    }
+}
+
+
+// returns the proper stat inputs for the given sport
+function getStatInputs(sport){
+    if (sport == 'football'){
+        var footballHTML = `
+            <table border="1" id="stat-input-table">
+                <tr id="stats-table-headers">
+                    <th>Player</th>
+                    <th>Touchdowns</th>
+                    <th>Catches</th>
+                    <th>Passing Touchdown</th>
+                    <th>Sacks</th>
+                    <th>Interceptions</th>
+                </tr>
+                <!-- Rows for players will be added here -->
+            </table>
+        `
+        return footballHTML;
+    }
+
+    if (sport == 'soccer'){
+        var soccerHTML = `
+            <table border="1" id="stat-input-table">
+                <tr id="stats-table-headers">
+                    <th>Player</th>
+                    <th>Goals</th>
+                    <th>Assists</th>
+                </tr>
+                <!-- Rows for players will be added here -->
+            </table>
+        `
+        return soccerHTML;
+    }
+
+    if (sport == 'basketball'){
+        var basketballHTML = `
+            <table border="1" id="stat-input-table">
+                <tr id="stats-table-headers">
+                    <th>Player</th>
+                    <th>Points</th>
+                    <th>Rebounds</th>
+                    <th>Assists</th>
+                    <th>Steals</th>
+                    <th>Blocks</th>
+                </tr>
+            </table>
+        `
+        return basketballHTML;
+    } else {
+        return;
     }
 }
 
@@ -1213,8 +1502,8 @@ function convertToMilitaryTime(standardTime) {
 }
 
 
-function addLeague(league, description, organization, start, end, registration){
-    data = "league_name=" + league + "&" + "description=" + description + "&" + "organization=" + organization + "&startDate=" + start + "&endDate=" + end + "&registration=" + registration;
+function addLeague(league, description, organization, start, end, registration, sport){
+    data = "league_name=" + league + "&" + "description=" + description + "&" + "organization=" + organization + "&startDate=" + start + "&endDate=" + end + "&registration=" + registration + "&sport=" + sport;
     console.log(data);
     fetch("http://localhost:8080/leagues",{
         credentials: 'include',
@@ -1240,12 +1529,28 @@ function addLeague(league, description, organization, start, end, registration){
             const cell3 = document.createElement('td');
             cell3.textContent = document.querySelector('#organization-input').value;
             row.appendChild(cell3);
+
+            const cell4 = document.createElement('td');
+            cell4.textContent = formatDate(document.querySelector('#start-date-input').value);
+            row.appendChild(cell4);
+
+            const cell5 = document.createElement('td');
+            cell5.textContent = formatDate(document.querySelector('#end-date-input').value);
+            row.appendChild(cell5);
+
+            const cell6 = document.createElement('td');
+            cell6.textContent = formatDate(document.querySelector('#registration-date-input').value);
+            row.appendChild(cell6);
                 
             adminLeaguesTable = document.querySelector("#admin-leagues-table");
             adminLeaguesTable.appendChild(row);
             document.querySelector('#add-description-input').value = '';
             document.querySelector('#add-league-input').value = '';
             document.querySelector('#organization-input').value = '';
+            document.querySelector('#start-date-input').value = '';
+            document.querySelector('#end-date-input').value = '';
+            document.querySelector('#registration-date-input').value = '';
+            document.querySelector("#sport-selector").selectedIndex = 0;
         }
     })
 }
@@ -1284,35 +1589,44 @@ function displayAdminLeagues(){
             leaguesTableHeader.appendChild(header);
             adminLeaguesTable.appendChild(leaguesTableHeader);
             
-            leagues.forEach( function(league){
+            leagues.forEach(function(league) {
                 const row = document.createElement('tr');
-
+            
                 // Create and append cells for each data item
                 for (const key in league) {
-                  const cell = document.createElement('td');
-                  cell.textContent = league[key];
-                  row.appendChild(cell);
+                    const cell = document.createElement('td');
+                    if (isDateInFormat(league[key], "yyyy-mm-dd")) {
+                        cell.textContent = formatDate(league[key]);
+                    } else {
+                    cell.textContent = league[key];
+                    }
+                    row.appendChild(cell);
                 }
+            
                 const cell = document.createElement('td');
                 cell.setAttribute('class', 'modify-league-cell');
-
-
+            
                 editButton = document.createElement('button');
                 editButton.setAttribute('class', 'edit-league-button');
                 editButton.innerHTML = 'Edit';
                 cell.append(editButton);
-
+            
                 deleteButton = document.createElement('button');
                 deleteButton.setAttribute('class', 'delete-league-button');
                 deleteButton.innerHTML = 'Delete';
                 cell.append(deleteButton);
-
+            
                 row.appendChild(cell);
-
+            
                 adminLeaguesTable.appendChild(row);
             });
         })
     })
+}
+
+function isDateInFormat(dateString, format) {
+    const regex = /^\d{4}-\d{2}-\d{2}$/;
+    return regex.test(dateString);
 }
 
 function createAdminCalendar(display, startDate) {
@@ -1443,7 +1757,9 @@ function displayAdminPortal(){
     document.querySelector("#league-inputs-right").style.display = "flex";
     document.querySelector("#league-schedule-display").style.display = 'block';
     document.querySelector("#league-selector-container").style.display = 'flex';
-    
+    document.querySelector("#admin-stats-container").style.display = 'grid';
+    document.querySelector("#stat-input-container").style.display = 'block';
+
     var calendarElements = document.getElementsByClassName("calendar");
     for (var i = 0; i < calendarElements.length; i++) {
         calendarElements[i].style.display = 'block';
@@ -1464,5 +1780,5 @@ function displayAdminPortal(){
         monthElements[i].style.display = 'flex';
     }
 
-    wrapper.style.gridTemplateRows = "repeat(12, 150px)";
+    wrapper.style.gridTemplateRows = "repeat(15, 150px)";
 }

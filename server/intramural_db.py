@@ -62,9 +62,9 @@ class IntramurallDB:
         userID = self.cursor.fetchone()
         return userID[0]
 
-    def makeLeague(self, league_name, description, organization, adminID, startDate, endDate, registrationDate):
-        make_league = ("INSERT INTO leagues (league_name, description, organization, adminID, startDate, endDate, registrationDate)"
-                       "values (%(league_name)s, %(description)s, %(organization)s, %(adminID)s, %(startDate)s, %(endDate)s, %(registrationDate)s)")
+    def makeLeague(self, league_name, description, organization, adminID, startDate, endDate, registrationDate,sport):
+        make_league = ("INSERT INTO leagues (league_name, description, organization, adminID, startDate, endDate, registrationDate, sport)"
+                       "values (%(league_name)s, %(description)s, %(organization)s, %(adminID)s, %(startDate)s, %(endDate)s, %(registrationDate)s, %(sport)s)")
 
         league_data = {
             'league_name': league_name,
@@ -73,7 +73,8 @@ class IntramurallDB:
             'adminID': adminID,
             'startDate': startDate,
             'endDate': endDate,
-            'registrationDate': registrationDate
+            'registrationDate': registrationDate,
+            'sport': sport
         }
 
         self.cursor.execute(make_league, league_data)
@@ -99,6 +100,20 @@ class IntramurallDB:
         self.cursor.execute(get_league, admin_data)
         league = self.cursor.fetchall()
         return league
+
+    def getSport(self, adminID, league_name):
+        get_sport = ("SELECT sport FROM leagues WHERE adminID = %(adminID)s AND league_name = %(league_name)s")
+
+        data = {
+            'adminID': adminID,
+            'league_name': league_name
+        }
+
+        self.cursor.execute(get_sport, data)
+        sport = self.cursor.fetchone()
+        sport = sport[0]
+        return sport
+        
 
     def getOrganizations(self):
         get_org = ("SELECT league_name, organization FROM leagues")
@@ -338,11 +353,30 @@ class IntramurallDB:
 
         return games_by_date
 
-            
+    def getTeamsFromLeague(self, league_name, adminID):
 
-        
+        get_organization = ("SELECT organization FROM leagues WHERE league_name = %(league_name)s AND adminID = %(adminID)s")
 
+        data = {
+            'league_name': league_name,
+            'adminID': adminID
+        }
 
+        self.cursor.execute(get_organization, data)
+        org = self.cursor.fetchone()
+
+        organization = org[0]
+
+        get_teams = ("SELECT team_name FROM teams WHERE league = %(league_name)s AND organization = %(organization)s")
+
+        data = {
+            'league_name': league_name,
+            'organization': organization
+        }
+
+        self.cursor.execute(get_teams, data)
+        teams = self.cursor.fetchall()
+        return teams
 
 
     def __exit__(self):
@@ -385,6 +419,7 @@ describe intramurall.leagues
 | startDate        | varchar(255) | YES  |     | NULL    |       |
 | endDate          | varchar(255) | YES  |     | NULL    |       |
 | registrationDate | varchar(255) | YES  |     | NULL    |       |
+| sport            | varchar(255) | YES  |     | NULL    |       |
 +------------------+--------------+------+-----+---------+-------+
 '''
 

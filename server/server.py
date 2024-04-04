@@ -119,8 +119,6 @@ def logout_user():
         return "Logged out", 201
     return "Unable to log out", 401
 
-
-
 @app.route("/roles", methods=["POST"])
 def get_role():
     if g.session_data["role"] == 'admin':
@@ -135,11 +133,12 @@ def make_league():
     startDate = request.form["startDate"]
     endDate = request.form["endDate"]
     registration = request.form["registration"]
+    sport = request.form["sport"]
     adminID = g.session_data["admin_id"]
     print("adminID:", adminID)
 
     db = IntramurallDB()
-    db.makeLeague(league_name, description, organization, adminID, startDate, endDate, registration)
+    db.makeLeague(league_name, description, organization, adminID, startDate, endDate, registration, sport)
     return "Created league", 201
 
 @app.route("/leagues", methods=["GET"])
@@ -165,6 +164,20 @@ def getAdminLeague(league):
     league = db.getAdminLeague(adminID, league)
     print(league)
     return league, 200
+
+@app.route("/sports", methods=["GET"])
+def getSport():
+    league = request.args.get("league")
+    adminID = g.session_data["admin_id"]
+    if not adminID:
+        return 401, "Unauthorized"
+    
+    db = IntramurallDB()
+    sport = db.getSport(adminID, league)
+    print("The sport is:", sport)
+    data = []
+    data.append(sport)
+    return data, 200
 
 @app.route("/organizations", methods=["GET"])
 def getOrganizations():
@@ -206,17 +219,30 @@ def getTeams():
     organization = request.args.get("organization")
 
     db = IntramurallDB()
-    teams = db.getTeams(league, organization)
-    print("The teams: ",teams)
-    if teams:
-        i = 0
-        for team in teams:
-            name = db.getName(teams[i][1])
-            teams[i] = list(teams[i])
-            teams[i][1] = name[0][0] + " " + name[0][1]
-            i += 1
-        return teams, 200
-    return "Unable to find requested teams", 404
+
+    # Check if organization parameter is included
+    if organization:
+        teams = db.getTeams(league, organization)
+        print("The teams: ", teams)
+        if teams:
+            i = 0
+            for team in teams:
+                name = db.getName(teams[i][1])
+                teams[i] = list(teams[i])
+                teams[i][1] = name[0][0] + " " + name[0][1]
+                i += 1
+            return teams, 200
+        return "Unable to find requested teams", 404
+    else:
+        adminID = g.session_data["admin_id"]
+        if not adminID:
+            return 401, "Unauthorized"
+
+        teams = db.getTeamsFromLeague(league, adminID)
+        if teams:
+            return teams, 200
+        else:
+            return "Unable to find requested teams", 404
 
 @app.route('/rosters', methods=["POST"])
 def joinTeam():
@@ -248,7 +274,10 @@ def getRoster():
     organization = organization[0]
 
     roster = db.getRoster(team, league, organization)
-    return roster, 200
+    if roster:
+        return roster, 200
+    else:
+        return "Unable to locate roster", 404
 
 
 def schedule_games(teams, dates, times, num_fields):
@@ -359,6 +388,16 @@ def get_games():
 
     print("The player is scheduled for these games:", games)
     return games, 200
+
+
+@app.route('/stats', methods=["GET"])
+def add_stats():
+    if g.session_data["role"] != 'admin':
+        return "Unauthorized", 401
+
+    sport = request.args.get('sport')
+    print(sport, request.json)
+    return "Stats updated", 201
 
 def main():
     app.run(port=8080)
