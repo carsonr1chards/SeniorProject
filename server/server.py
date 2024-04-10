@@ -223,7 +223,6 @@ def getTeams():
     # Check if organization parameter is included
     if organization:
         teams = db.getTeams(league, organization)
-        print("The teams: ", teams)
         if teams:
             i = 0
             for team in teams:
@@ -390,14 +389,77 @@ def get_games():
     return games, 200
 
 
-@app.route('/stats', methods=["GET"])
+@app.route('/stats', methods=["POST"])
 def add_stats():
     if g.session_data["role"] != 'admin':
         return "Unauthorized", 401
 
+    adminID = g.session_data['admin_id']
     sport = request.args.get('sport')
-    print(sport, request.json)
+    league = request.args.get('league')
+    team = request.args.get('team')
+    
+    db = IntramurallDB()
+
+    for player in request.json:
+        db.insertStats(player, sport, league, team, adminID)
     return "Stats updated", 201
+
+@app.route('/stats', methods=["GET"])
+def get_stats():
+    if g.session_data["role"] == 'admin':
+        adminID = g.session_data['admin_id']
+        db = IntramurallDB()
+        stats = db.getPlayerStatsAdmin(adminID)
+        return stats, 200
+        
+    else:
+        # only returns the stats that pertain to said user
+        userID = g.session_data['user_id']
+        if not userID:
+            return "Unauthorized", 401
+
+        db = IntramurallDB()
+        playerStats = db.getPlayerStats(userID)
+
+        return playerStats, 200
+
+@app.route('/stats/leaders', methods=["GET"])
+def get_stat_leaders():
+    if g.session_data["role"] == 'admin':
+        # if user is an admin, returns the stats for all leagues they are admin of
+        adminID = g.session_data['admin_id']
+        db = IntramurallDB()
+        stats = db.getLeagueLeadersAdmin(adminID)
+        return stats, 200
+    else:
+        # only returns the stats that pertain to said user
+        userID = g.session_data['user_id']
+        if not userID:
+            return "Unauthorized", 401
+
+        db = IntramurallDB()
+        leagueLeaders = db.getLeagueLeaders(userID)
+        return leagueLeaders, 200
+
+@app.route('/teams/myteams', methods=["GET"])
+def get_my_teams():
+    if g.session_data["role"] == 'admin':
+        # if user is an admin, returns the teams for all leagues they are admin of
+        adminID = g.session_data['admin_id']
+        db = IntramurallDB()
+        teams = db.getMyTeamsAdmin(adminID)
+        return teams, 200
+    else:
+        # only returns the stats that pertain to said user
+        userID = g.session_data['user_id']
+        if not userID:
+            return "Unauthorized", 401
+
+        db = IntramurallDB()
+        teams = db.getMyTeams(userID)
+        print(teams)
+        return teams, 200
 
 def main():
     app.run(port=8080)

@@ -137,6 +137,15 @@ function createHomePage (){
     teamsIcon.setAttribute('id', 'teams-icon');
     teamsIcon.src = "/images/Teams-Icon.svg";
     navList.appendChild(teamsIcon);
+    teamsIcon.onclick = function(){
+        if (document.querySelector('#teams-container')){
+            clearPage();
+            displayTeamsPage();
+        } else {
+            clearPage();
+            teamsPage();
+        }
+    }
     p = document.createElement("p");
     p.innerHTML = 'Teams';
     navList.appendChild(p);
@@ -151,6 +160,16 @@ function createHomePage (){
     statsIcon.setAttribute('id', 'stats-icon');
     statsIcon.src = "/images/Stats-Icon.svg";
     navList.appendChild(statsIcon);
+
+    statsIcon.onclick = function(){
+        if (document.querySelector('#stats-container')){
+            clearPage();
+            displayStatsPage();
+        } else {
+            clearPage();
+            statsPage();
+        }
+    }
     p = document.createElement("p");
     p.innerHTML = 'Stats';
     navList.appendChild(p);
@@ -198,6 +217,7 @@ function createHomePage (){
     organizationSelectorContainer.appendChild(searchButton);
     leaguesTable = document.createElement('table');
     leaguesTable.setAttribute('id', 'leagues-table');
+    leaguesTable.setAttribute('class', 'table table-bordered table-striped');
     leaguesTableContainer = document.createElement('div');
     leaguesTableContainer.setAttribute('id', 'leagues-table-container');
     leaguesContainer.appendChild(leaguesTableContainer);
@@ -324,6 +344,7 @@ function loadLeagues(){
             response.json().then(function(data){
                 organizations = data;
                 var i = 0;
+                tbody = document.createElement('tbody');
                 organizations.forEach( function(organization){
                     const row = document.createElement('tr');
     
@@ -341,9 +362,10 @@ function loadLeagues(){
                     viewButton.innerHTML = 'View';
                     cell.append(viewButton);
                     row.appendChild(cell);
-                    leaguesTable.appendChild(row);
+                    tbody.appendChild(row);
                     i++;
                 });
+                leaguesTable.appendChild(tbody);
                 [...document.getElementsByClassName('view-league-button')].forEach(x =>{
                     x.addEventListener('click', function(){
                         viewLeague(this);
@@ -555,6 +577,7 @@ function populateLeagueTeams(league, organization){
             response.json().then(function(data){
                 teams = data;
                 teamsTable = document.createElement('table');
+                teamsTable.setAttribute('class', 'table table-bordered table-striped');
                 viewTeamsDisplay = document.querySelector("#view-teams-display");
                 viewTeamsDisplay.appendChild(teamsTable);
 
@@ -568,6 +591,7 @@ function populateLeagueTeams(league, organization){
                 header = document.createElement('th');
                 teamsTableHeader.appendChild(header);
                 teamsTable.appendChild(teamsTableHeader);
+                tbody = document.createElement('tbody');
                 teams.forEach( function(team){
                     const row = document.createElement('tr');
     
@@ -585,8 +609,9 @@ function populateLeagueTeams(league, organization){
                     viewButton.innerHTML = 'View';
                     cell.append(viewButton);
                     row.appendChild(cell);
-                    teamsTable.appendChild(row);
+                    tbody.appendChild(row);
                 });
+                teamsTable.appendChild(tbody);
                 [...document.getElementsByClassName('view-team-button')].forEach(x =>{
                     x.addEventListener('click', function(){
                         viewTeam(this);
@@ -954,7 +979,7 @@ function adminPortal(){
                     schedule = JSON.parse(schedule)
 
                     var scheduleTable = `
-                        <table id="admin-schedule-table">
+                        <table id="admin-schedule-table" class="table table-bordered table-striped">
                             <tr>
                                 <th>Time</th>
                                 <th>Home</th>
@@ -974,7 +999,8 @@ function adminPortal(){
                         td.innerHTML = formatDate(key);
                         dateRow.appendChild(td);
                         dateRow.setAttribute('class', 'date-row');
-                        table.appendChild(dateRow);
+                        tbody = document.createElement('tbody');
+                        tbody.appendChild(dateRow);
                         for (let time in day) {
                             if (day[time].length > 0){
                                 var games = day[time];
@@ -991,10 +1017,11 @@ function adminPortal(){
                                     row.appendChild(gameTime);
                                     row.appendChild(home);
                                     row.appendChild(away);
-                                    table.appendChild(row);
+                                    tbody.appendChild(row);
                                 }
                             }
                         }
+                        table.appendChild(tbody);
                     }
                     
                     
@@ -1187,7 +1214,8 @@ function createStatsManager() {
                         var inputs = getStatInputs(sport);
                         var statInputContainer = document.querySelector("#stat-input-container");
                         statInputContainer.innerHTML = inputs;
-
+                        statInputContainer.children[0].setAttribute('id', 'stat-input-table');
+                        statInputContainer.children[0].setAttribute('class', 'table table-bordered table-striped')
 
                         fetch("http://localhost:8080/teams?league=" + league, {
                             credentials: 'include'
@@ -1244,6 +1272,7 @@ function createStatsManager() {
                                                 if (response.status == 200){
                                                     response.json().then(function(roster){
                                                         
+                                                        tbody = document.createElement('tbody');
                                                         roster.forEach(function(player){
                                                             sth = document.querySelector("#stats-table-headers");
                                                             var numCol = sth.children.length;
@@ -1254,7 +1283,7 @@ function createStatsManager() {
                                                             row.appendChild(playerField);
 
                                                             inputHTML = `
-                                                                <input type="number" min="0" placeholder="0"class="stat-inputs">
+                                                                <input type="number" min="0" value="0" class="stat-inputs">
                                                             `
                                                             // for loop over each stat column
                                                             for (i = 0; i < numCol - 1; i++){
@@ -1263,9 +1292,11 @@ function createStatsManager() {
                                                                 row.appendChild(td);
                                                             }
 
-                                                            statInputTable = document.querySelector("#stat-input-table");
-                                                            statInputTable.appendChild(row);
+                                                            
+                                                            tbody.appendChild(row);
                                                         })
+                                                        statInputTable = document.querySelector("#stat-input-table");
+                                                        statInputTable.appendChild(tbody);
                                                     })
                                                 } else {
                                                     if (statInputTable.children.length > 1) {
@@ -1296,13 +1327,13 @@ function createStatsManager() {
                                                     stats.push(playerStats);
                                                 }
                                                 
-                                                fetch('http://localhost:8080/stats?sport=' + sport,{
+                                                fetch('http://localhost:8080/stats?sport=' + sport + "&league=" + encodeURIComponent(selectLeagueStats.value) + "&team=" + encodeURIComponent(selectTeamStats.value),{
                                                     method: 'POST',
                                                     headers: {
                                                         'Content-Type': 'application/json',
                                                     },
                                                     body: JSON.stringify(stats),
-                                                }).then(function(repsonse){
+                                                }).then(function(response){
                                                     if (response.status == 201){
                                                         // clear all inputs
                                                         console.log("Successfully added stats.");
@@ -1336,16 +1367,15 @@ function createStatsManager() {
 function getStatInputs(sport){
     if (sport == 'football'){
         var footballHTML = `
-            <table border="1" id="stat-input-table">
+            <table border="1">
                 <tr id="stats-table-headers">
                     <th>Player</th>
                     <th>Touchdowns</th>
                     <th>Catches</th>
-                    <th>Passing Touchdown</th>
+                    <th>Passing Touchdowns</th>
                     <th>Sacks</th>
                     <th>Interceptions</th>
                 </tr>
-                <!-- Rows for players will be added here -->
             </table>
         `
         return footballHTML;
@@ -1353,13 +1383,12 @@ function getStatInputs(sport){
 
     if (sport == 'soccer'){
         var soccerHTML = `
-            <table border="1" id="stat-input-table">
+            <table border="1">
                 <tr id="stats-table-headers">
                     <th>Player</th>
                     <th>Goals</th>
                     <th>Assists</th>
                 </tr>
-                <!-- Rows for players will be added here -->
             </table>
         `
         return soccerHTML;
@@ -1367,7 +1396,7 @@ function getStatInputs(sport){
 
     if (sport == 'basketball'){
         var basketballHTML = `
-            <table border="1" id="stat-input-table">
+            <table border="1">
                 <tr id="stats-table-headers">
                     <th>Player</th>
                     <th>Points</th>
@@ -1375,6 +1404,94 @@ function getStatInputs(sport){
                     <th>Assists</th>
                     <th>Steals</th>
                     <th>Blocks</th>
+                </tr>
+            </table>
+        `
+        return basketballHTML;
+    } else {
+        return;
+    }
+}
+
+function getStatLeaders(sport){
+    if (sport == 'football'){
+        var footballHTML = `
+            <table border="1">
+                <tr id="stats-table-headers">
+                    <th>Stat</th>
+                    <th>Leader</th>
+                </tr>
+                <tr>
+                    <td>Touchdowns</td>
+                    <td>None</td>
+                </tr>
+                <tr>
+                    <td>Catches</td>
+                    <td>None</td>
+                </tr>
+                <tr>
+                    <td>Passing Touchdowns</td>
+                    <td>None</td>
+                </tr>
+                <tr>
+                    <td>Sacks</td>
+                    <td>None</td>
+                </tr>
+                <tr>
+                    <td>Interceptions</td>
+                    <td>None</td>
+                </tr>
+            </table>
+        `
+        return footballHTML;
+    }
+
+    if (sport == 'soccer'){
+        var soccerHTML = `
+            <table border="1">
+                <tr id="stats-table-headers">
+                    <th>Stat</th>
+                    <th>Leader</th>
+                </tr>
+                <tr>
+                    <td>Goals</td>
+                    <td>None</td>
+                </tr>
+                <tr>
+                    <td>Assists</td>
+                    <td>None</td>
+                </tr>
+            </table>
+        `
+        return soccerHTML;
+    }
+
+    if (sport == 'basketball'){
+        var basketballHTML = `
+            <table border="1">
+                <tr id="stats-table-headers">
+                    <th>Stat</th>
+                    <th>Leader</th>
+                </tr>
+                <tr>
+                    <td>Points</td>
+                    <td>None</td>
+                </tr>
+                <tr>
+                    <td>Rebounds</td>
+                    <td>None</td>
+                </tr>
+                <tr>
+                    <td>Assists</td>
+                    <td>None</td>
+                </tr>  
+                <tr>
+                    <td>Steals</td>
+                    <td>None</td>
+                </tr> 
+                <tr>
+                    <td>Blocks</td>
+                    <td>None</td>
                 </tr>
             </table>
         `
@@ -1563,6 +1680,7 @@ function displayAdminLeagues(){
         response.json().then(function(data){
             leagues = data;
             adminLeaguesTable = document.createElement('table');
+            adminLeaguesTable.setAttribute('class', 'table table-bordered table-striped');
             adminLeaguesTable.setAttribute('id', 'admin-leagues-table');
             adminLeagues = document.querySelector("#admin-leagues");
             adminLeagues.appendChild(adminLeaguesTable);
@@ -1589,6 +1707,7 @@ function displayAdminLeagues(){
             leaguesTableHeader.appendChild(header);
             adminLeaguesTable.appendChild(leaguesTableHeader);
             
+            tbody = document.createElement('tbody');
             leagues.forEach(function(league) {
                 const row = document.createElement('tr');
             
@@ -1618,8 +1737,9 @@ function displayAdminLeagues(){
             
                 row.appendChild(cell);
             
-                adminLeaguesTable.appendChild(row);
+                tbody.appendChild(row);
             });
+            adminLeaguesTable.appendChild(tbody);
         })
     })
 }
@@ -1739,7 +1859,7 @@ function clearPage(){
 function displayHomePage(){
     document.querySelector("#welcome-header-container").style.display = "block";
     document.querySelector("#leagues-container").style.display = "grid";
-    document.querySelector("#upcoming-games-container").style.display = "block";
+    document.querySelector("#upcoming-games-container").style.display = "grid";
     document.querySelector("#welcome-header").innerHTML = "Welcome to IntramurALL"
     document.querySelector("#organization-selector-container").style.display = 'block';
     document.querySelector("#leagues-table-container").style.display = 'block';
@@ -1782,3 +1902,162 @@ function displayAdminPortal(){
 
     wrapper.style.gridTemplateRows = "repeat(15, 150px)";
 }
+
+function statsPage(){
+    var statsContainer = document.createElement('div');
+    statsContainer.setAttribute('id', 'stats-container');
+    document.querySelector("#wrapper").appendChild(statsContainer);
+
+    let statsHTML = `
+    <h2 id="stats-header">Stats</h2>
+    <h3 id="my-stats-header">My Stats</h3>
+    <div id="my-stats-window"></div>
+    <h3 id="stat-leaders-header">Stat Leaders</h3>
+    <div id="league-leaders-window"></div>
+    `
+    statsContainer.innerHTML = statsHTML;
+    var myStats = document.querySelector('#my-stats-window');
+
+    fetch('http://localhost:8080/stats', {
+        credentials: 'include'
+    }).then(function(response) {
+        if (response.status == 200) {
+            response.json().then(function(stats) {
+                let index = 0;
+                let currentTable;
+
+                stats.forEach(stat => {
+                    let team = stat[3];
+                    let league = stat[4];
+
+                    // Check if it's the first row or if league/team has changed
+                    if (index === 0 || stats[index - 1][3] !== team || stats[index - 1][4] !== league) {
+                        // Create a new table
+                        let p = document.createElement('h4');
+                        p.innerHTML = "League: " + league + ", Team: " + team;
+                        p.setAttribute('class', 'my-stat-headers');
+                        myStats.appendChild(p);
+
+                        let sport = stat[2];
+                        currentTableHTML = getStatInputs(sport);
+                        myStats.innerHTML += currentTableHTML
+
+
+                        currentTable = myStats.lastElementChild;
+                        myStats.lastElementChild.setAttribute('class', 'table table-bordered table-striped');
+                    }
+
+                    // Append the row to the current table
+                    let tbody = currentTable.querySelector('tbody');
+                    let row = document.createElement('tr');
+                    let player = document.createElement('td');
+                    player.innerHTML = stat[1];
+                    row.appendChild(player);
+                    for (let i = 6; i < stat.length; i++) {
+                        if (stat[i] == null) {
+                            continue;
+                        }
+
+                        let td = document.createElement('td');
+                        td.innerHTML = stat[i];
+                        row.appendChild(td);
+                    }
+                    tbody.appendChild(row);
+
+                    index++;
+                });
+            })
+        }
+    })
+    var statLeaders = document.querySelector("#league-leaders-window");
+
+    fetch('http://localhost:8080/stats/leaders',{
+        credentials: 'include'
+    }).then(function(response){
+        if (response.status == 200){
+            response.json().then(function(leaders){
+                leaders.forEach(function(league){
+                    var table = getStatLeaders(league[0][0])
+                    header = document.createElement('h4');
+                    header.setAttribute('class', 'stat-leaders-header');
+                    header.innerHTML = "League: " + league[0][2] + ", Organization: " + league[0][3];
+                    statLeaders.appendChild(header);
+                    statLeaders.innerHTML += table;
+                    
+                    statLeaders.lastElementChild.setAttribute('class', 'table table-bordered table-striped');
+
+                    currentTable = statLeaders.lastElementChild;
+                    rows = currentTable.children[0].children;
+                    
+                    for (let i = 1; i < rows.length; i++){
+                        if (/\b0\b/.test(league[0][i + 3])){
+                            continue;
+                        } else {
+                            rows[i].lastElementChild.innerHTML = league[0][i + 3];
+                        }
+                    }
+                })
+            })
+        }
+    })
+}
+
+function displayStatsPage(){
+    document.querySelector('#stats-container').style.display = 'grid';
+    document.querySelector('#my-stats-window').style.display = 'block';
+    document.querySelector('#league-leaders-window').style.display = 'block';
+}
+
+function teamsPage(){
+    var teamsContainer = document.createElement('div');
+    teamsContainer.setAttribute('id', 'teams-container');
+
+    var wrapper = document.querySelector("#wrapper");
+    wrapper.appendChild(teamsContainer);
+
+    let teamsHTML = `
+    <h2 id="teams-header">My Teams</h2>
+    <div id="my-teams-display"></div>
+    `
+
+    teamsContainer.innerHTML += teamsHTML;
+
+    var myTeamsDisplay = document.querySelector('#my-teams-display');
+
+    fetch('http://localhost:8080/teams/myteams',{
+        credentials: 'include'
+    }).then(function(response){
+        if (response.status == 200){
+            response.json().then(function(teams){
+                console.log(teams);
+
+                teams.forEach(function(team){
+                    var teamElement = document.createElement('div');
+                    teamElement.setAttribute('class', 'team-element');
+                    teamInfo = document.createElement('div');
+                    teamInfo.setAttribute('class', 'team-info');
+                    team.forEach(function(info){
+                        p = document.createElement('p');
+                        p.setAttribute('class', 'my-team-info');
+                        p.innerHTML = info;
+                        teamInfo.appendChild(p);
+                    })
+                    teamElement.appendChild(teamInfo);
+                    teamElement.innerHTML += `
+                    <div class="team-info-headers">
+                        <p>Team:</p>
+                        <p>League:</p>
+                        <p>Organization:</p>
+                    </div>
+                    `
+                    myTeamsDisplay.appendChild(teamElement);
+                })
+            })
+        }
+    })
+}
+
+function displayTeamsPage(){
+    document.querySelector('#teams-container').style.display = 'grid';
+}
+

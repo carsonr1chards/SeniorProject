@@ -378,6 +378,387 @@ class IntramurallDB:
         teams = self.cursor.fetchall()
         return teams
 
+    def insertStats(self, player, sport, league_name, team, adminID):
+        get_organization = ("SELECT organization FROM leagues WHERE league_name = %(league_name)s AND adminID = %(adminID)s")
+
+        data = {
+            'league_name': league_name,
+            'adminID': adminID
+        }
+
+        self.cursor.execute(get_organization, data)
+        org = self.cursor.fetchone()
+
+        organization = org[0]
+
+        name = player['Player']
+
+        get_user_id = ("SELECT userID FROM teamRosters WHERE team_name = %(team)s AND player = %(name)s AND league = %(league_name)s")
+
+        data = {
+            'team': team,
+            'name': name,
+            'league_name': league_name
+        }
+
+        self.cursor.execute(get_user_id, data)
+        userID = self.cursor.fetchone()
+
+        userID = userID[0]
+
+        check_stats = ("SELECT * FROM stats WHERE userID = %(userID)s AND league = %(league_name)s AND team = %(team)s")
+
+        data = {
+            'userID': userID,
+            'league_name': league_name,
+            'team': team
+        }
+
+        self.cursor.execute(check_stats, data)
+        exists = self.cursor.fetchall()
+
+        if not exists:
+            # create new entry in stats table
+            
+            if sport == 'football':
+                touchdowns = player["Touchdowns"]
+                catches = player["Catches"]
+                passing_touchdowns = player["Passing Touchdowns"]
+                sacks = player["Sacks"]
+                interceptions = player["Interceptions"]
+
+                create_stats = ("INSERT INTO stats (userID, player, sport, team, league, organization, touchdowns, catches, passing_touchdowns, sacks, interceptions)"
+                                "VALUES (%(userID)s, %(name)s, %(sport)s, %(team)s, %(league_name)s, %(organization)s, %(touchdowns)s, %(catches)s, %(passing_touchdowns)s, %(sacks)s, %(interceptions)s)")
+
+                data = {
+                    'userID': userID,
+                    'name': name,
+                    'sport': sport,
+                    'team': team,
+                    'league_name': league_name,
+                    'organization':  organization,
+                    'touchdowns': touchdowns,
+                    'catches': catches,
+                    'passing_touchdowns': passing_touchdowns,
+                    'sacks': sacks,
+                    'interceptions': interceptions
+                }
+
+            elif sport == 'soccer':
+                goals = player["Goals"]
+                assists = player["Assists"]
+
+                create_stats = ("INSERT INTO stats (userID, player, sport, team, league, organization, goals, assistsSoccer)"
+                                "VALUES (%(userID)s, %(name)s, %(sport)s, %(team)s, %(league_name)s, %(organization)s, %(goals)s, %(assists)s)")
+
+                data = {
+                    'userID': userID,
+                    'name': name,
+                    'sport': sport,
+                    'team': team,
+                    'league_name': league_name,
+                    'organization':  organization,
+                    'goals': goals,
+                    'assists': assists
+                }
+
+            elif sport == 'basketball':
+                points = player["Points"]
+                rebounds = player["Rebounds"]
+                assists = player["Assists"]
+                steals = player["Steals"]
+                blocks = player["Blocks"]
+
+                create_stats = ("INSERT INTO stats (userID, player, sport, team, league, organization, points, rebounds, assists, steals, blocks)"
+                                "VALUES (%(userID)s, %(name)s, %(sport)s, %(team)s, %(league_name)s, %(organization)s, %(points)s, %(rebounds)s, %(assists)s, %(steals)s, %(blocks)s)")
+
+                data = {
+                    'userID': userID,
+                    'name': name,
+                    'sport': sport,
+                    'team': team,
+                    'league_name': league_name,
+                    'organization':  organization,
+                    'points': points,
+                    'rebounds': rebounds,
+                    'assists': assists,
+                    'steals': steals,
+                    'blocks': blocks
+                }
+
+            self.cursor.execute(create_stats, data)
+            self.cnx.commit()
+
+        else:
+            if sport == 'football':
+                touchdowns = player["Touchdowns"]
+                catches = player["Catches"]
+                passing_touchdowns = player["Passing Touchdowns"]
+                sacks = player["Sacks"]
+                interceptions = player["Interceptions"]
+
+                update_stats = ("UPDATE stats "
+                                "SET touchdowns = touchdowns + %(touchdowns)s, catches = catches + %(catches)s, passing_touchdowns = passing_touchdowns + %(passing_touchdowns)s, sacks = sacks + %(sacks)s, interceptions = interceptions + %(interceptions)s "
+                                "WHERE userID = %(userID)s AND sport = %(sport)s AND league = %(league_name)s AND organization = %(organization)s AND team = %(team)s")
+
+                data = {
+                    'userID': userID,
+                    'name': name,
+                    'sport': sport,
+                    'team': team,
+                    'league_name': league_name,
+                    'organization': organization,
+                    'touchdowns': touchdowns,
+                    'catches': catches,
+                    'passing_touchdowns': passing_touchdowns,
+                    'sacks': sacks,
+                    'interceptions': interceptions
+                }
+
+            elif sport == 'soccer':
+                goals = player["Goals"]
+                assists = player["Assists"]
+
+                update_stats = ("UPDATE stats "
+                                "SET goals = goals + %(goals)s, assistsSoccer = assistsSoccer + %(assists)s "
+                                "WHERE userID = %(userID)s AND sport = %(sport)s AND league = %(league_name)s AND organization = %(organization)s AND team = %(team)s")
+
+                data = {
+                    'userID': userID,
+                    'name': name,
+                    'sport': sport,
+                    'team': team,
+                    'league_name': league_name,
+                    'organization': organization,
+                    'goals': goals,
+                    'assists': assists
+                }
+
+            elif sport == 'basketball':
+                points = player["Points"]
+                rebounds = player["Rebounds"]
+                assists = player["Assists"]
+                steals = player["Steals"]
+                blocks = player["Blocks"]
+
+                update_stats = ("UPDATE stats "
+                                "SET points = points + %(points)s, rebounds = rebounds + %(rebounds)s, assists = assists + %(assists)s, steals = steals + %(steals)s, blocks = blocks + %(blocks)s "
+                                "WHERE userID = %(userID)s AND sport = %(sport)s AND league = %(league_name)s AND organization = %(organization)s AND team = %(team)s")
+
+                data = {
+                    'userID': userID,
+                    'name': name,
+                    'sport': sport,
+                    'team': team,
+                    'league_name': league_name,
+                    'organization': organization,
+                    'points': points,
+                    'rebounds': rebounds,
+                    'assists': assists,
+                    'steals': steals,
+                    'blocks': blocks
+                }
+
+            self.cursor.execute(update_stats, data)
+            self.cnx.commit()
+
+            
+    def getPlayerStats(self, userID):
+        get_stats = ("SELECT * FROM stats WHERE userID = %(userID)s")
+
+        data = {
+            'userID': userID
+        }
+
+        self.cursor.execute(get_stats, data)
+        stats = self.cursor.fetchall()
+
+        return stats
+
+    def getPlayerStatsAdmin(self, adminID):
+        get_organization = ("SELECT organization FROM leagues WHERE adminID = %(adminID)s")
+
+        data = {
+            'adminID': adminID
+        }
+
+        self.cursor.execute(get_organization, data)
+        org = self.cursor.fetchone()
+
+        organization = org[0]
+
+        self.cursor.fetchall()
+
+        get_stats = ("SELECT * FROM stats WHERE organization = %(organization)s ORDER BY team")
+
+        data = {
+            'organization': organization
+        }
+
+        self.cursor.execute(get_stats, data)
+        stats = self.cursor.fetchall()
+
+        return stats
+
+    def getLeagueLeaders(self, userID):
+
+        get_teams = ("SELECT team_name, league, organization FROM teamRosters WHERE userID = %(userID)s")
+
+        data = {
+            'userID': userID
+        }
+
+        self.cursor.execute(get_teams, data)
+        teams = self.cursor.fetchall()
+
+        
+        leaders = []
+        for team in teams:
+            get_sport = ("SELECT sport FROM stats WHERE userID = %(userID)s AND team = %(team)s AND league = %(league)s AND organization = %(organization)s")
+
+            data = {
+                'userID': userID,
+                'team': team[0],
+                'league': team[1],
+                'organization': team[2]
+            }
+
+            self.cursor.execute(get_sport, data)
+            sport = self.cursor.fetchone()
+
+            sport = sport[0]
+
+            if sport == 'football':
+                sql_query = """
+                SELECT
+                    'football' AS sport,
+                    %(team)s AS team,
+                    %(league)s AS league,
+                    %(organization)s AS organization,
+                    (SELECT CONCAT(player, ' - ', touchdowns) FROM stats WHERE touchdowns = (SELECT MAX(touchdowns) FROM stats WHERE sport = 'football' AND league = %(league)s AND organization = %(organization)s) ORDER BY userID LIMIT 1) AS max_touchdowns_player,
+                    (SELECT CONCAT(player, ' - ', catches) FROM stats WHERE catches = (SELECT MAX(catches) FROM stats WHERE sport = 'football' AND league = %(league)s AND organization = %(organization)s) ORDER BY userID LIMIT 1) AS max_catches_player,
+                    (SELECT CONCAT(player, ' - ', passing_touchdowns) FROM stats WHERE passing_touchdowns = (SELECT MAX(passing_touchdowns) FROM stats WHERE sport = 'football' AND league = %(league)s AND organization = %(organization)s) ORDER BY userID LIMIT 1) AS max_passing_touchdowns_player,
+                    (SELECT CONCAT(player, ' - ', sacks) FROM stats WHERE sacks = (SELECT MAX(sacks) FROM stats WHERE sport = 'football' AND league = %(league)s AND organization = %(organization)s) ORDER BY userID LIMIT 1) AS max_sacks_player,
+                    (SELECT CONCAT(player, ' - ', interceptions) FROM stats WHERE interceptions = (SELECT MAX(interceptions) FROM stats WHERE sport = 'football' AND league = %(league)s AND team = %(team)s AND organization = %(organization)s) ORDER BY userID LIMIT 1) AS max_interceptions_player;
+                """
+
+            if sport == 'soccer':
+                sql_query = """
+                SELECT
+                    'soccer' AS sport,
+                    %(team)s AS team,
+                    %(league)s AS league,
+                    %(organization)s AS organization,
+                    (SELECT CONCAT(player, ' - ', goals) FROM stats WHERE goals = (SELECT MAX(goals) FROM stats WHERE sport = 'soccer' AND league = %(league)s AND organization = %(organization)s) ORDER BY userID LIMIT 1) AS max_goals_player,
+                    (SELECT CONCAT(player, ' - ', assistsSoccer) FROM stats WHERE assistsSoccer = (SELECT MAX(assistsSoccer) FROM stats WHERE sport = 'soccer' AND league = %(league)s AND organization = %(organization)s) ORDER BY userID LIMIT 1) AS max_assistsSoccer_player;
+                """
+
+            if sport == 'basketball':
+                sql_query = """
+                SELECT
+                    'basketball' AS sport,
+                    %(team)s AS team,
+                    %(league)s AS league,
+                    %(organization)s AS organization,
+                    (SELECT CONCAT(player, ' - ', points) FROM stats WHERE points = (SELECT MAX(points) FROM stats WHERE sport = 'basketball' AND league = %(league)s AND organization = %(organization)s) ORDER BY userID LIMIT 1) AS max_points_player,
+                    (SELECT CONCAT(player, ' - ', rebounds) FROM stats WHERE rebounds = (SELECT MAX(rebounds) FROM stats WHERE sport = 'basketball' AND league = %(league)s AND organization = %(organization)s) ORDER BY userID LIMIT 1) AS max_rebounds_player,
+                    (SELECT CONCAT(player, ' - ', assists) FROM stats WHERE assists = (SELECT MAX(assists) FROM stats WHERE sport = 'basketball' AND league = %(league)s AND organization = %(organization)s) ORDER BY userID LIMIT 1) AS max_assists_player,
+                    (SELECT CONCAT(player, ' - ', steals) FROM stats WHERE steals = (SELECT MAX(steals) FROM stats WHERE sport = 'basketball' AND league = %(league)s AND organization = %(organization)s) ORDER BY userID LIMIT 1) AS max_steals_player,
+                    (SELECT CONCAT(player, ' - ', blocks) FROM stats WHERE blocks = (SELECT MAX(blocks) FROM stats WHERE sport = 'basketball' AND league = %(league)s AND organization = %(organization)s) ORDER BY userID LIMIT 1) AS max_blocks_player;
+                """
+
+            data = {
+                'team': team[0],
+                'league': team[1],
+                'organization': team[2]
+            }
+
+            self.cursor.execute(sql_query, data)
+            stats = self.cursor.fetchall()
+            leaders.append(stats)
+
+        return leaders
+
+
+    def getLeagueLeadersAdmin(self, adminID):
+
+        get_leagues_query = ("SELECT league_name, organization FROM leagues WHERE adminID = %s")
+        self.cursor.execute(get_leagues_query, (adminID,))
+        leagues = self.cursor.fetchall()
+
+        leaders = []
+        for league in leagues:
+            league_name = league[0]
+            organization = league[1]
+
+            get_teams_query = ("SELECT team_name FROM teams WHERE league = %s AND organization = %s")
+            self.cursor.execute(get_teams_query, (league_name, organization))
+            teams = self.cursor.fetchall()
+
+            for team in teams:
+                team_name = team[0]
+
+                get_sport_query = ("SELECT sport FROM stats WHERE team = %s AND league = %s AND organization = %s")
+                self.cursor.execute(get_sport_query, (team_name, league_name, organization))
+                sport = self.cursor.fetchone()
+
+                if sport:
+                    sport = sport[0]
+
+                    if sport == 'football':
+                        sql_query = """
+                        SELECT
+                            'football' AS sport,
+                            %s AS team,
+                            %s AS league,
+                            %s AS organization,
+                            (SELECT CONCAT(player, ' - ', touchdowns) FROM stats WHERE touchdowns = (SELECT MAX(touchdowns) FROM stats WHERE sport = 'football' AND league = %s AND organization = %s) ORDER BY userID LIMIT 1) AS max_touchdowns_player,
+                            (SELECT CONCAT(player, ' - ', catches) FROM stats WHERE catches = (SELECT MAX(catches) FROM stats WHERE sport = 'football' AND league = %s AND organization = %s) ORDER BY userID LIMIT 1) AS max_catches_player,
+                            (SELECT CONCAT(player, ' - ', passing_touchdowns) FROM stats WHERE passing_touchdowns = (SELECT MAX(passing_touchdowns) FROM stats WHERE sport = 'football' AND league = %s AND organization = %s) ORDER BY userID LIMIT 1) AS max_passing_touchdowns_player,
+                            (SELECT CONCAT(player, ' - ', sacks) FROM stats WHERE sacks = (SELECT MAX(sacks) FROM stats WHERE sport = 'football' AND league = %s AND organization = %s) ORDER BY userID LIMIT 1) AS max_sacks_player,
+                            (SELECT CONCAT(player, ' - ', interceptions) FROM stats WHERE interceptions = (SELECT MAX(interceptions) FROM stats WHERE sport = 'football' AND league = %s AND organization = %s) ORDER BY userID LIMIT 1) AS max_interceptions_player;
+                        """
+                    elif sport == 'soccer':
+                        sql_query = """
+                        SELECT
+                            'soccer' AS sport,
+                            %s AS team,
+                            %s AS league,
+                            %s AS organization,
+                            (SELECT CONCAT(player, ' - ', goals) FROM stats WHERE goals = (SELECT MAX(goals) FROM stats WHERE sport = 'soccer' AND league = %s AND organization = %s) ORDER BY userID LIMIT 1) AS max_goals_player,
+                            (SELECT CONCAT(player, ' - ', assistsSoccer) FROM stats WHERE assistsSoccer = (SELECT MAX(assistsSoccer) FROM stats WHERE sport = 'soccer' AND team = %s AND organization = %s) ORDER BY userID LIMIT 1) AS max_assistsSoccer_player;
+                        """
+                    elif sport == 'basketball':
+                        sql_query = """
+                        SELECT
+                            'basketball' AS sport,
+                            %s AS team,
+                            %s AS league,
+                            %s AS organization,
+                            (SELECT CONCAT(player, ' - ', points) FROM stats WHERE points = (SELECT MAX(points) FROM stats WHERE sport = 'basketball' AND league = %s AND organization = %s) ORDER BY userID LIMIT 1) AS max_points_player,
+                            (SELECT CONCAT(player, ' - ', rebounds) FROM stats WHERE rebounds = (SELECT MAX(rebounds) FROM stats WHERE sport = 'basketball' AND league = %s AND organization = %s) ORDER BY userID LIMIT 1) AS max_rebounds_player,
+                            (SELECT CONCAT(player, ' - ', assists) FROM stats WHERE assists = (SELECT MAX(assists) FROM stats WHERE sport = 'basketball' AND league = %s AND organization = %s) ORDER BY userID LIMIT 1) AS max_assists_player,
+                            (SELECT CONCAT(player, ' - ', steals) FROM stats WHERE steals = (SELECT MAX(steals) FROM stats WHERE sport = 'basketball' AND league = %s AND organization = %s) ORDER BY userID LIMIT 1) AS max_steals_player,
+                            (SELECT CONCAT(player, ' - ', blocks) FROM stats WHERE blocks = (SELECT MAX(blocks) FROM stats WHERE sport = 'basketball' AND league = %s AND organization = %s) ORDER BY userID LIMIT 1) AS max_blocks_player;
+                        """
+                    self.cursor.fetchall()
+                    self.cursor.execute(sql_query, (team_name, league_name, organization, league_name, organization, league_name, organization, league_name, organization, league_name, organization, league_name, organization))
+                    stats = self.cursor.fetchall()
+                    leaders.append(stats)
+
+        return leaders
+
+    def getMyTeams(self, userID):
+
+        query = ("SELECT team_name, league, organization FROM teamRosters WHERE userID = %(userID)s")
+
+        data = {
+            'userID': userID
+        }
+
+        self.cursor.execute(query, data)
+        teams = self.cursor.fetchall()
+        return teams
 
     def __exit__(self):
         self.cnx.close()
@@ -496,5 +877,54 @@ CREATE TABLE schedules (
     league varchar(255),
     adminId int,
     schedule JSON
+);
+'''
+
+'''
+describe intramurall.stats;
++--------------------+--------------+------+-----+---------+-------+
+| Field              | Type         | Null | Key | Default | Extra |
++--------------------+--------------+------+-----+---------+-------+
+| userID             | int          | YES  |     | NULL    |       |
+| player             | varchar(255) | YES  |     | NULL    |       |
+| sport              | varchar(255) | YES  |     | NULL    |       |
+| team               | varchar(255) | YES  |     | NULL    |       |
+| league             | varchar(255) | YES  |     | NULL    |       |
+| organization       | varchar(255) | YES  |     | NULL    |       |
+| touchdowns         | int          | YES  |     | NULL    |       |
+| catches            | int          | YES  |     | NULL    |       |
+| passing_touchdowns | int          | YES  |     | NULL    |       |
+| sacks              | int          | YES  |     | NULL    |       |
+| interceptions      | int          | YES  |     | NULL    |       |
+| goals              | int          | YES  |     | NULL    |       |
+| assistsSoccer      | int          | YES  |     | NULL    |       |
+| points             | int          | YES  |     | NULL    |       |
+| rebounds           | int          | YES  |     | NULL    |       |
+| assists            | int          | YES  |     | NULL    |       |
+| steals             | int          | YES  |     | NULL    |       |
+| blocks             | int          | YES  |     | NULL    |       |
++--------------------+--------------+------+-----+---------+-------+
+'''
+
+'''
+CREATE TABLE stats (
+    userID int,
+    player varchar(255),
+    sport varchar(255),
+    team varchar(255),
+    league varchar(255),
+    organization varchar(255),
+    touchdowns int,
+    catches int,
+    passing_touchdowns int,
+    sacks int,
+    interceptions int,
+    goals int,
+    assistsSoccer int,
+    points int,
+    rebounds int,
+    assists int,
+    steals int,
+    blocks int
 );
 '''
