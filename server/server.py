@@ -267,10 +267,15 @@ def joinTeam():
 def getRoster():
     team = request.args.get('team')
     league = request.args.get('league')
+    organization = request.args.get('organization')
 
     db = IntramurallDB()
-    organization = db.getOrganization(team, league)
-    organization = organization[0]
+    
+    if not organization:
+        organization = db.getOrganization(team, league)
+        organization = organization[0]
+
+    print(team, league, organization)
 
     roster = db.getRoster(team, league, organization)
     if roster:
@@ -360,6 +365,23 @@ def create_schedules_endpoint():
     # print(dbschedules)
     return "Created schedule", 201
 
+@app.route('/schedules', methods=["DELETE"])
+def delete_schedules_endpoint():
+    league = request.args.get('league')
+    adminID = g.session_data['admin_id']
+
+    if adminID and league:
+        db = IntramurallDB()
+        schedule = db.getSchedule(league, adminID)
+        if schedule:
+            db.removeSchedule(league, adminID)
+            return "Removed schedule", 200
+
+        else:
+            return "Schedule not found", 404
+    else:
+        return 'Unauthorized', 401
+
 @app.route('/schedules/<string:league>', methods=["GET"])
 def get_schedule(league):
     adminID = g.session_data.get("admin_id")
@@ -373,21 +395,72 @@ def get_schedule(league):
         return schedule, 200
     return jsonify({}), 200
 
-@app.route('/games', methods=["GET"])
-def get_games():
-    if g.session_data["role"] == "admin":
-        return [], 200
+@app.route('/users/games', methods=["GET"])
+def get_users_games():
+    team = request.args.get('team')
+    league = request.args.get('league')
+    organization = request.args.get('organization')
+
+    db = IntramurallDB()
+
+    if not organization and (team and league):
+        organization = db.getOrganization(team, league)
+        organization = organization[0]
 
     userID = g.session_data["user_id"]
     if not userID:
         return "Unauthorized", 401
-    
-    db = IntramurallDB()
+
     games = db.getPlayerGames(userID)
 
-    print("The player is scheduled for these games:", games)
     return games, 200
 
+@app.route('/games', methods=["GET"])
+def get_games():
+    team = request.args.get('team')
+    league = request.args.get('league')
+    organization = request.args.get('organization')
+
+    db = IntramurallDB()
+
+    if not organization and (team and league):
+        organization = db.getOrganization(team, league)
+        organization = organization[0]
+
+    if g.session_data["role"] == "admin":
+        if team and league and organization:
+
+            adminID = g.session_data["admin_id"]
+            db = IntramurallDB()
+            games = db.getAdminGames(adminID, league, team)
+            games = remove_games_without_team(games, team)
+            return games, 200
+            
+        else:
+            return [], 200
+
+    userID = g.session_data["user_id"]
+    if not userID:
+        return "Unauthorized", 401
+
+    games = db.getTeamGames(organization, league, team)
+
+    if team and league and organization:
+        games = remove_games_without_team(games, team)
+
+    return games, 200
+
+def remove_games_without_team(schedule, team_name):
+    print("The schedule is:", schedule)
+    updated_schedule = {}
+    for date, games in schedule.items():
+        updated_games = []
+        for game in games:
+            if team_name in game['teams']:
+                updated_games.append(game)
+        if updated_games:
+            updated_schedule[date] = updated_games
+    return updated_schedule
 
 @app.route('/stats', methods=["POST"])
 def add_stats():

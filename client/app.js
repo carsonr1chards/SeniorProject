@@ -120,23 +120,35 @@ function createHomePage (){
     logo.style.height = 'auto';
     logo.style.width = '130px'
     navList.appendChild(logo);
+
+    var div = document.createElement('div');
+    div.setAttribute('class', 'nav-buttons');
     var homeIcon = document.createElement("img");
     homeIcon.setAttribute('id', 'home-icon');
     homeIcon.src = "/images/Home-Icon.svg";
-    navList.appendChild(homeIcon);
+    div.appendChild(homeIcon);
+    var p = document.createElement("p");
+    p.innerHTML = 'Home';
+    div.appendChild(p);
+    navList.appendChild(div);
     var homeIcon = document.querySelector("#home-icon");
     document.querySelector("#login-portal").style.display = 'none';
     homeIcon.onclick = function(){
         clearPage();
         displayHomePage();
     }
-    var p = document.createElement("p");
-    p.innerHTML = 'Home';
-    navList.appendChild(p);
+
+
+    var div = document.createElement('div');
+    div.setAttribute('class', 'nav-buttons');
     var teamsIcon = document.createElement("img");
     teamsIcon.setAttribute('id', 'teams-icon');
     teamsIcon.src = "/images/Teams-Icon.svg";
-    navList.appendChild(teamsIcon);
+    div.appendChild(teamsIcon);
+    p = document.createElement("p");
+    p.innerHTML = 'Teams';
+    div.appendChild(p);
+    navList.appendChild(div);
     teamsIcon.onclick = function(){
         if (document.querySelector('#teams-container')){
             clearPage();
@@ -146,9 +158,8 @@ function createHomePage (){
             teamsPage();
         }
     }
-    p = document.createElement("p");
-    p.innerHTML = 'Teams';
-    navList.appendChild(p);
+
+    /*
     var scheduleIcon = document.createElement("img");
     scheduleIcon.setAttribute('id', 'schedule-icon');
     scheduleIcon.src = "/images/Calendar-Icon.svg";
@@ -156,11 +167,18 @@ function createHomePage (){
     p = document.createElement("p");
     p.innerHTML = 'Schedule';
     navList.appendChild(p);
+    */
+
+    var div = document.createElement('div');
+    div.setAttribute('class', 'nav-buttons');
     var statsIcon = document.createElement("img");
     statsIcon.setAttribute('id', 'stats-icon');
     statsIcon.src = "/images/Stats-Icon.svg";
-    navList.appendChild(statsIcon);
-
+    div.appendChild(statsIcon);
+    p = document.createElement("p");
+    p.innerHTML = 'Stats';
+    div.appendChild(p);
+    navList.appendChild(div);
     statsIcon.onclick = function(){
         if (document.querySelector('#stats-container')){
             clearPage();
@@ -170,19 +188,21 @@ function createHomePage (){
             statsPage();
         }
     }
-    p = document.createElement("p");
-    p.innerHTML = 'Stats';
-    navList.appendChild(p);
+
+    var div = document.createElement('div');
+    div.setAttribute('class', 'nav-buttons');
     var logoutIcon = document.createElement("img");
     logoutIcon.setAttribute('id', 'logout-icon');
     logoutIcon.src = "/images/Logout-Icon.svg";
-    navList.appendChild(logoutIcon);
+    div.appendChild(logoutIcon);
+    p = document.createElement("p");
+    p.innerHTML = 'Logout';
+    div.appendChild(p);
+    navList.appendChild(div);
     logoutIcon.onclick = function(){
         logout();
     }
-    p = document.createElement("p");
-    p.innerHTML = 'Logout';
-    navList.appendChild(p);
+
     welcomeHeaderContainer = document.createElement('div');
     welcomeHeaderContainer.setAttribute('id', 'welcome-header-container');
     welcomeHeader = document.createElement('h1');
@@ -252,7 +272,7 @@ function createHomePage (){
         //populate games for each date ul
             // for each game li
 
-    fetch('http://localhost:8080/games', {
+    fetch('http://localhost:8080/users/games', {
         credentials: "include"
     }).then(function(response) {
         if (response.status == 200) {
@@ -656,6 +676,8 @@ function viewTeam(button){
     scheduleHeader.setAttribute('id', 'schedule-header');
     scheduleHeader.innerHTML = 'Schedule';
     viewTeamDetails.appendChild(scheduleHeader);
+    loadRoster(button.parentElement.parentElement.children[0].textContent, document.getElementById("league-display-header-div").children[0].textContent);
+    loadSchedule(button.parentElement.parentElement.children[0].textContent, document.getElementById("league-display-header-div").children[0].textContent);
 
     joinTeamButton = document.createElement('button');
     joinTeamButton.setAttribute('id', 'join-team-button');
@@ -674,15 +696,101 @@ function viewTeam(button){
         }).then(function(response){
             if (response.status == 201){
                 console.log('Joined team');
-                loadRoster();
+                loadRoster(button.parentElement.parentElement.children[0].textContent, document.getElementById("league-display-header-div").children[0].textContent);
             }
         })
     }
     viewTeamDetails.appendChild(joinTeamButton);
 }
 
-function loadRoster(){
-    return;
+function loadSchedule(team, league){
+    var scheduleDisplay = document.querySelector('#schedule-display');
+
+    fetch('http://localhost:8080/games?league=' + encodeURIComponent(league) + '&team=' + encodeURIComponent(team), {
+        credentials: "include"
+    }).then(function(response) {
+        if (response.status == 200) {
+            response.json().then(function(games) {
+                if (Object.keys(games).length === 0) {
+                    // if player is not scheduled for any upcoming games
+                    message = document.createElement('p');
+                    message.innerHTML = "No schedule.";
+                    message.style.textAlign = 'center';
+                    scheduleDisplay.appendChild(message);
+                } else {
+                    var currentDate = new Date();
+                    currentDate.setHours(0, 0, 0, 0);
+                    for (var day in games) {
+                        date = new Date(day);
+                        date.setDate(date.getDate() + 1);
+                        if (date >= currentDate || date.toDateString() == currentDate.toDateString()) {
+                            dateElement = document.createElement('h3');
+                            dateElement.setAttribute('class', 'upcoming-games-date');
+                            dateElement.innerHTML = formatDate(day);
+                            scheduleDisplay.appendChild(dateElement);
+    
+                            gamesList = document.createElement('ul');
+                            gamesList.setAttribute('class', 'games-list');
+    
+                            games[day].forEach(function(game) {
+                                gameLi = document.createElement('li');
+                                gameLi.innerHTML = game['teams'][0] + " vs. " + game['teams'][1] + " at " + convertToStandardTime(game['time']);
+                                gamesList.appendChild(gameLi);
+                            });
+                            scheduleDisplay.appendChild(gamesList);
+                        }
+                    }
+                }
+            });
+        } else {
+            // if player is not scheduled for any upcoming games
+            message = document.createElement('p');
+            message.innerHTML = "No schedule.";
+            message.style.textAlign = 'center';
+            scheduleDisplay.appendChild(message);
+        }
+    });
+}
+
+function loadRoster(team, league){
+    var rosterTable = document.createElement('table');
+    rosterTable.setAttribute('id', 'roster-table');
+    rosterTable.setAttribute('class', 'table table-bordered table-striped');
+
+    rosterDisplay = document.querySelector('#roster-display');
+
+    rosterDisplay.appendChild(rosterTable);
+    tbody = document.createElement('tbody');
+
+    tr = document.createElement('tr');
+    th = document.createElement('th');
+
+    th.innerHTML = 'Player';
+    tr.appendChild(th);
+    tbody.appendChild(tr);
+
+    fetch('http://localhost:8080/rosters?league=' + encodeURIComponent(league) + '&team=' + encodeURIComponent(team),{
+        credentials: 'include'
+    }).then(function(response){
+        if (response.status == 200){
+            response.json().then(function(roster){
+                roster.forEach(function(player){
+                    row = document.createElement('tr');
+                    td = document.createElement('td');
+                    td.innerHTML = player;
+                    row.appendChild(td);
+                   
+                    tbody.appendChild(row);
+                })
+                rosterTable.appendChild(tbody);
+            })
+        } else {
+            message = document.createElement('p');
+            message.innerHTML = "No players.";
+            message.style.textAlign = 'center';
+            rosterDisplay.appendChild(message);
+        }
+    });
 }
 
 function closeTeamDisplay(){
@@ -720,14 +828,18 @@ function isAdmin(){
                 container = document.querySelector("#upcoming-games-container");
                 container.appendChild(upcomingGames);
             }
+
+            var div = document.createElement('div');
+            div.setAttribute('class', 'nav-buttons');
             var adminIcon = document.createElement("img");
             adminIcon.setAttribute('id', 'admin-icon');
             adminIcon.src = "/images/Admin-Icon.svg";
             var navList = document.querySelector("#nav-list")
-            navList.appendChild(adminIcon);
+            div.appendChild(adminIcon);
             p = document.createElement("p");
             p.innerHTML = 'Admin';
-            navList.appendChild(p);
+            div.appendChild(p);
+            navList.appendChild(div);
             adminIcon.onclick = function(){
                 var adminLeaguesContainer = document.querySelector("#admin-leagues-container");
                 if (!(adminLeaguesContainer)){
@@ -738,6 +850,21 @@ function isAdmin(){
                 }
             }
         } else {
+            var adminLeagues = document.querySelector('#admin-leagues-container');
+            if (adminLeagues){
+                adminLeagues.remove();
+            }
+
+            var adminScheduler = document.querySelector('#admin-scheduler-container')
+            if(adminScheduler){
+                adminScheduler.remove();
+            }
+
+            var adminStats = document.querySelector('#admin-stats-container')
+            if(adminStats){
+                adminStats.remove();
+            }
+
             var adminIcon = document.getElementById("admin-icon");
             if (adminIcon !== null){
                 adminIcon.remove();
@@ -753,7 +880,7 @@ function isAdmin(){
                 upcomingGames.setAttribute("id","upcoming-games-div");
                 upcomingGamesContainer.appendChild(upcomingGames);
 
-                fetch('http://localhost:8080/games', {
+                fetch('http://localhost:8080/users/games', {
                     credentials: "include"
                 }).then(function(response) {
                     if (response.status == 200) {
@@ -965,12 +1092,12 @@ function adminPortal(){
                 scheduleTable.remove();
             }
             return;
-        } else{
+        } else {
             scheduleExists(selectedLeague).then(function(response){
                 if (response != false){
                     scheduleInputsHTML = `
-                    <h2>Edit Schedule</h2>
-                    <p>Select a Day to Begin</p>
+                    <h3>Schedule Created</h3>
+                    <button id="schedule-delete">Delete</button>
                     `
                     schedule = response[0][2]
                     leagueSelectorContainer.innerHTML = scheduleInputsHTML;
@@ -987,6 +1114,127 @@ function adminPortal(){
                             </tr>
                         </table>
                     `
+
+                    scheduleDelete = document.querySelector('#schedule-delete');
+                    if (scheduleDelete){
+                        scheduleDelete.onclick = function(){
+                            input = confirm('Do you want to delete this schedule?');
+                            if (input){
+                                fetch('http://localhost:8080/schedules?league=' + encodeURIComponent(selectedLeague),{
+                                    method: "DELETE",
+                                    credentials: "include"
+                                }).then(function(response){
+                                    if (response.status == 200){
+                                        scheduleTable = document.querySelector('#admin-schedule-table');
+                                        if (scheduleTable){
+                                            scheduleTable.remove();
+                                        }
+                                        scheduleInputsHTML = `
+                                            <h2>Create Schedule</h2>
+                                            <label for="start-date">Start Date:</label>
+                                            <input type="date" id='start-date'></input>
+                                            <label for="end-date">End Date:</label>
+                                            <input type="date" id='end-date'></input>
+                                            <label>Games Played On:</label>
+                                            <div class="dropdown-checkbox">
+                                                <button class="dropdown-checkbox-btn">Select Days</button>
+                                                <div class="dropdown-checkbox-content">
+                                                    <label><input type="checkbox" value=6> Sunday</label>
+                                                    <label><input type="checkbox" value=0> Monday</label>
+                                                    <label><input type="checkbox" value=1> Tuesday</label>
+                                                    <label><input type="checkbox" value=2> Wednesday</label>
+                                                    <label><input type="checkbox" value=3> Thursday</label>
+                                                    <label><input type="checkbox" value=4> Friday</label>
+                                                    <label><input type="checkbox" value=5> Saturday</label>
+                                                </div>
+                                            </div>
+                                            <label for="num-fields">Number of fields/courts:</label>
+                                            <input type="number" min="1" id="num-fields" name="num-fields">
+                                            <label for="start-time">Start Time:</label>
+                                            <input type="time" id="start-time" name="start-time">
+                        
+                                            <label for="end-time">End Time:</label>
+                                            <input type="time" id="end-time" name="end-time">
+                                            <button id="create-schedule-button">Create</button>
+                                        `;
+                                
+                                        leagueSelectorContainer.innerHTML = scheduleInputsHTML;
+                                        
+                                        // JavaScript to handle the dropdown checkbox functionality
+                                        const dropdownBtn = document.querySelector('.dropdown-checkbox-btn');
+                                        const dropdownContent = document.querySelector('.dropdown-checkbox-content');
+                        
+                                        dropdownBtn.addEventListener('click', function(event) {
+                                            dropdownContent.classList.toggle('show');
+                                            event.stopPropagation();
+                                        });
+                        
+                                        dropdownContent.addEventListener('click', function(event) {
+                                            event.stopPropagation();
+                                        });
+                        
+                                        // Close the dropdown when the user clicks outside of it
+                                        window.addEventListener('click', function() {
+                                            dropdownContent.classList.remove('show');
+                                        });
+                        
+                                        fetch("http://localhost:8080/admin-leagues/" + selectedLeague,{
+                                            credentials: 'include',
+                                        }).then(function(response){
+                                            response.json().then(function(data){
+                                                var startDate = document.getElementById('start-date');
+                                                var endDate = document.getElementById('end-date');
+                        
+                                                league = data[0];
+                                                startDate.value = league[3];
+                                                endDate.value = league[4];
+                                                startDate.disabled = true;
+                                                endDate.disabled = true;
+                                                calendar = document.querySelector('.calendar');
+                                                if (calendar){
+                                                    calendar.remove();
+                                                }
+                                                createAdminCalendar(leagueScheduleDisplay, league[3]);
+                                            })
+                                        })
+                        
+                        
+                                        const createButton = document.getElementById('create-schedule-button');
+                                        createButton.addEventListener('click', function() {
+                        
+                                            const startDate = document.getElementById('start-date').value;
+                                            const endDate = document.getElementById('end-date').value;
+                                            const startTime = document.getElementById('start-time').value;
+                                            const endTime = document.getElementById('end-time').value;
+                                            const daysCheckboxes = document.querySelectorAll('.dropdown-checkbox-content input[type="checkbox"]');
+                                            
+                                            console.log(startDate, endDate, startTime, endTime);
+                                            // Check if any input field is empty
+                                            if (startDate === '' || endDate === '' || startTime === '' || endTime === '') {
+                                                alert('Please fill in all fields before creating the schedule.');
+                                                return;
+                                            }
+                        
+                                            // Check if at least one checkbox is checked
+                                            let atLeastOneChecked = false;
+                                            for (let i = 0; i < daysCheckboxes.length; i++) {
+                                                if (daysCheckboxes[i].checked) {
+                                                    atLeastOneChecked = true;
+                                                    break;
+                                                }
+                                            }
+                        
+                                            if (!atLeastOneChecked) {
+                                                alert('Please select at least one day for the schedule.');
+                                                return;
+                                            }
+                                            createSchedule();
+                                        });
+                                    }
+                                })
+                            }
+                        }
+                    }
 
                     leagueScheduleDisplay.innerHTML = scheduleTable;
                     
@@ -1854,6 +2102,15 @@ function clearPage(){
         leagueDisplay.remove();
     }
     wrapper.style.gridTemplateRows = "repeat(6, 150px)";
+
+    if (document.querySelector('#my-team-display')){
+        document.querySelector('#my-team-display').remove();
+    }
+
+    navButtons = document.getElementsByClassName('nav-buttons');
+    for (var i = 0; i < navButtons.length; i++) {
+        navButtons[i].style.display = 'flex';
+    }
 }
 
 function displayHomePage(){
@@ -2050,6 +2307,123 @@ function teamsPage(){
                         <p>Organization:</p>
                     </div>
                     `
+
+                    teamElement.onclick = function(){
+                        if (document.querySelector('#my-team-display')){
+                            return;
+                        }
+                        myTeamDisplay = document.createElement('div');
+                        myTeamDisplay.setAttribute('id', 'my-team-display');
+                        let html = `
+                            <div id="my-team-header-div">
+                                <h2 id="my-team-display-header"></h2>
+                                <img src="images/x-button.png" id="close-button-my-team">
+                            </div>
+                            <h3 id="my-team-roster-header">Roster</h3>
+                            <div id="my-team-roster"></div>
+                            <h3 id="my-team-schedule-header">Schedule</h3>
+                            <div id="my-team-schedule"></div>
+                        `
+                        myTeamDisplay.innerHTML += html;
+                        wrapper.appendChild(myTeamDisplay);
+                        var close = document.querySelector('#close-button-my-team');
+                        if (close){
+                            close.onclick = function(){
+                                myTeamDisplay.remove();
+                            }
+                        }
+
+                        header = document.querySelector('#my-team-display-header');
+
+                        let team = teamElement.children[0].children[0].textContent;
+                        let league = teamElement.children[0].children[1].textContent;
+                        let organization = teamElement.children[0].children[2].textContent;
+
+                        header.innerHTML = team;
+
+                        var myTeamRoster = document.querySelector('#my-team-roster');
+                        var myTeamSchedule = document.querySelector('#my-team-schedule');
+
+                        var myTeamRosterTable = document.createElement('table');
+                        myTeamRosterTable.setAttribute('id', 'my-team-roster-table');
+                        myTeamRosterTable.setAttribute('class', 'table table-bordered table-striped');
+
+                        myTeamRoster.appendChild(myTeamRosterTable);
+                        tbody = document.createElement('tbody');
+
+                        tr = document.createElement('tr');
+                        th = document.createElement('th');
+
+                        th.innerHTML = 'Player';
+                        tr.appendChild(th);
+                        tbody.appendChild(tr);
+
+                        // fetch request to get the roster
+                        fetch('http://localhost:8080/rosters?league=' + encodeURIComponent(league) + '&team=' + encodeURIComponent(team) + '&organization=' + encodeURIComponent(organization),{
+                            credentials: 'include'
+                        }).then(function(response){
+                            if (response.status == 200){
+                                response.json().then(function(roster){
+                                    roster.forEach(function(player){
+                                        row = document.createElement('tr');
+                                        td = document.createElement('td');
+                                        td.innerHTML = player;
+                                        row.appendChild(td);
+                                       
+                                        tbody.appendChild(row);
+                                    })
+                                    myTeamRosterTable.appendChild(tbody);
+                                })
+                            }
+                        });
+
+
+                        // fetch request to get the schedule
+                        fetch('http://localhost:8080/games?league=' + encodeURIComponent(league) + '&team=' + encodeURIComponent(team) + '&organization=' + encodeURIComponent(organization), {
+                            credentials: "include"
+                        }).then(function(response) {
+                            if (response.status == 200) {
+                                response.json().then(function(games) {
+                                    if (Object.keys(games).length === 0) {
+                                        // if player is not scheduled for any upcoming games
+                                        message = document.createElement('p');
+                                        message.innerHTML = "No schedule.";
+                                        message.style.textAlign = 'center';
+                                        myTeamSchedule.appendChild(message);
+                                    } else {
+                                        var currentDate = new Date();
+                                        currentDate.setHours(0, 0, 0, 0);
+                                        for (var day in games) {
+                                            date = new Date(day);
+                                            date.setDate(date.getDate() + 1);
+                                            if (date >= currentDate || date.toDateString() == currentDate.toDateString()) {
+                                                dateElement = document.createElement('h3');
+                                                dateElement.setAttribute('class', 'upcoming-games-date');
+                                                dateElement.innerHTML = formatDate(day);
+                                                myTeamSchedule.appendChild(dateElement);
+                        
+                                                gamesList = document.createElement('ul');
+                                                gamesList.setAttribute('class', 'games-list');
+                        
+                                                games[day].forEach(function(game) {
+                                                    gameLi = document.createElement('li');
+                                                    gameLi.innerHTML = game['teams'][0] + " vs. " + game['teams'][1] + " at " + convertToStandardTime(game['time']);
+                                                    gamesList.appendChild(gameLi);
+                                                });
+                                                myTeamSchedule.appendChild(gamesList);
+                                            }
+                                        }
+                                    }
+                                });
+                            } else {
+                                // if player is not scheduled for any upcoming games
+                                message = document.createElement('p');
+                                message.innerHTML = "No schedule.";
+                                message.style.textAlign = 'center';
+                                myTeamSchedule.appendChild(message);
+                            }
+                        });
+                    }
                     myTeamsDisplay.appendChild(teamElement);
                 })
             })
@@ -2059,5 +2433,20 @@ function teamsPage(){
 
 function displayTeamsPage(){
     document.querySelector('#teams-container').style.display = 'grid';
+    teamElements = document.querySelectorAll('.team-element');
+    teamElements.forEach(function(element){
+        element.style.display = 'flex';
+    })
+
+    teamInfo = document.querySelectorAll('.team-info');
+    teamInfo.forEach(function(element){
+        element.style.display = 'flex';
+    })
+
+    teamHeader = document.querySelectorAll('.team-info-headers');
+    teamHeader.forEach(function(element){
+        element.style.display = 'flex';
+    })
+    document.querySelector('#my-teams-display').style.display = 'flex';
 }
 

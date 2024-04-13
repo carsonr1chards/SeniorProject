@@ -353,6 +353,103 @@ class IntramurallDB:
 
         return games_by_date
 
+    def getAdminGames(self, adminID, league, team_name):
+        schedules = []
+
+        get_games = ("SELECT schedule FROM schedules WHERE adminID = %(adminID)s AND league = %(league)s")
+
+        data = {
+            'adminID': adminID,
+            'league': league
+        }
+
+        self.cursor.execute(get_games, data)
+        games = self.cursor.fetchall()
+        schedules.append(games)
+        
+        # Initialize an empty dictionary to store games grouped by date
+        games_by_date = {}
+
+        i = 0
+        for inner_list in schedules:
+            if inner_list:
+                json_string = inner_list[0][0]
+
+                # Convert the JSON string to a dictionary
+                game_schedule = eval(json_string)
+
+                # Loop through the keys (dates) in the game_schedule dictionary
+                for date in game_schedule.keys():
+                    if date not in games_by_date:
+                        games_by_date[date] = []
+
+                    # Loop through the time slots and games on each date
+                    for time, games in game_schedule[date].items():
+                        for game in games:
+                            if team_name in game:
+                                # Append the game to the list for this date
+                                games_by_date[date].append({
+                                    "time": time,
+                                    "teams": game
+                                })
+            i += 1
+
+        return games_by_date
+
+    def getTeamGames(self, organization, league, team_name):
+        get_adminID = ("SELECT adminID FROM leagues WHERE league_name = %(league_name)s AND organization = %(organization)s")
+
+        data = {
+            'league_name': league,
+            'organization': organization
+        }
+
+        self.cursor.execute(get_adminID, data)
+        adminID = self.cursor.fetchone()[0]
+
+        schedules = []
+
+        get_games = ("SELECT schedule FROM schedules WHERE adminID = %(adminID)s AND league = %(league)s")
+
+        data = {
+            'adminID': adminID,
+            'league': league
+        }
+
+        self.cursor.execute(get_games, data)
+        games = self.cursor.fetchall()
+        schedules.append(games)
+        
+        # Initialize an empty dictionary to store games grouped by date
+        games_by_date = {}
+
+        i = 0
+        for inner_list in schedules:
+            if inner_list:
+                json_string = inner_list[0][0]
+
+                # Convert the JSON string to a dictionary
+                game_schedule = eval(json_string)
+
+                # Loop through the keys (dates) in the game_schedule dictionary
+                for date in game_schedule.keys():
+                    if date not in games_by_date:
+                        games_by_date[date] = []
+
+                    # Loop through the time slots and games on each date
+                    for time, games in game_schedule[date].items():
+                        for game in games:
+                            if team_name in game:
+                                # Append the game to the list for this date
+                                games_by_date[date].append({
+                                    "time": time,
+                                    "teams": game
+                                })
+            i += 1
+
+        return games_by_date
+        
+
     def getTeamsFromLeague(self, league_name, adminID):
 
         get_organization = ("SELECT organization FROM leagues WHERE league_name = %(league_name)s AND adminID = %(adminID)s")
@@ -759,6 +856,53 @@ class IntramurallDB:
         self.cursor.execute(query, data)
         teams = self.cursor.fetchall()
         return teams
+
+    def getMyTeamsAdmin(self, adminID):
+
+        query = ("SELECT league_name, organization FROM leagues WHERE adminID = %(adminID)s")
+
+        data = {
+            'adminID': adminID
+        }
+
+        self.cursor.execute(query, data)
+        leagues = self.cursor.fetchall()
+
+        teams = []
+        seen_teams = set()  # To keep track of unique teams
+        for league in leagues:
+            query = ("SELECT team_name, league, organization FROM teamRosters WHERE league = %(league)s AND organization = %(organization)s")
+
+            data = {
+                'league': league[0],
+                'organization': league[1]
+            }
+
+            self.cursor.execute(query, data)
+            teams_in_league = self.cursor.fetchall()
+            
+            for team in teams_in_league:
+                team_name = team[0]
+                # Check if the team has already been seen, if not, add it to the list
+                if team_name not in seen_teams:
+                    teams.append(team)
+                    seen_teams.add(team_name)
+                    
+        return teams
+
+    
+    def removeSchedule(self, league, adminID):
+        query = ('DELETE FROM schedules WHERE league = %(league)s AND adminID = %(adminID)s')
+
+        data = {
+            'league': league,
+            'adminID': adminID
+        }
+
+        self.cursor.execute(query, data)
+        self.cnx.commit()
+        
+
 
     def __exit__(self):
         self.cnx.close()
