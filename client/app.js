@@ -306,6 +306,16 @@ function createHomePage (){
                             upcomingGames.appendChild(gamesList);
                         }
                     }
+                    var uls = upcomingGames.querySelectorAll('ul');
+                    uls.forEach(function(ul) {
+                        if (!ul.children.length) {
+                            ul.remove();
+                        }
+                    });
+
+                    if (upcomingGames.lastElementChild.tagName === 'H3' ){
+                        upcomingGames.lastElementChild.remove();
+                    }
                 }
             });
         } else {
@@ -350,7 +360,6 @@ function logout(){
 
             logo = document.getElementById('intramurall-text');
             logo.style.display = "";
-
         }
     })
 }
@@ -930,6 +939,16 @@ function isAdmin(){
 }
 
 function adminPortal(){
+    leagues = document.querySelector('#admin-leagues-container');
+    if (leagues){
+        leagues.remove();
+    }
+
+    schedules = document.querySelector('#admin-scheduler-container');
+    if (schedules){
+        schedules.remove();
+    }
+
     document.querySelector("#leagues-container").style.display = 'none';
     document.querySelector("#upcoming-games-container").style.display = 'none';
     document.querySelector("#welcome-header").innerHTML = "IntramurALL Admin";
@@ -1387,6 +1406,11 @@ function adminPortal(){
 }
 
 function createStatsManager() {
+    adminStatsContainer = document.querySelector('#admin-stats-container');
+    if (adminStatsContainer){
+        adminStatsContainer.remove();
+    }
+
     var adminStatsContainer = document.createElement('div');
     adminStatsContainer.setAttribute('id', 'admin-stats-container');
 
@@ -1906,9 +1930,19 @@ function addLeague(league, description, organization, start, end, registration, 
             const cell6 = document.createElement('td');
             cell6.textContent = formatDate(document.querySelector('#registration-date-input').value);
             row.appendChild(cell6);
+
+            const cell7 = document.createElement('td');
+            cell7.setAttribute('class', 'modify-league-cell');
+            cell7.style.padding = '15px';
+        
+            deleteButton = document.createElement('button');
+            deleteButton.setAttribute('class', 'delete-league-button');
+            deleteButton.innerHTML = 'Delete';
+            cell7.append(deleteButton);
+            row.append(cell7)
                 
             adminLeaguesTable = document.querySelector("#admin-leagues-table");
-            adminLeaguesTable.appendChild(row);
+            adminLeaguesTable.querySelector('tbody').appendChild(row);
             document.querySelector('#add-description-input').value = '';
             document.querySelector('#add-league-input').value = '';
             document.querySelector('#organization-input').value = '';
@@ -1916,12 +1950,19 @@ function addLeague(league, description, organization, start, end, registration, 
             document.querySelector('#end-date-input').value = '';
             document.querySelector('#registration-date-input').value = '';
             document.querySelector("#sport-selector").selectedIndex = 0;
+
+            adminPortal();
+            createStatsManager();
         }
     })
 }
 
 
 function displayAdminLeagues(){
+    var table = document.querySelector('#admin-leagues-table');
+    if (table){
+        table.remove();
+    }
     fetch("http://localhost:8080/admin-leagues",{
         credentials: 'include',
     }).then(function(response){
@@ -1972,11 +2013,7 @@ function displayAdminLeagues(){
             
                 const cell = document.createElement('td');
                 cell.setAttribute('class', 'modify-league-cell');
-            
-                editButton = document.createElement('button');
-                editButton.setAttribute('class', 'edit-league-button');
-                editButton.innerHTML = 'Edit';
-                cell.append(editButton);
+                cell.style.padding = '15px';
             
                 deleteButton = document.createElement('button');
                 deleteButton.setAttribute('class', 'delete-league-button');
@@ -1986,6 +2023,26 @@ function displayAdminLeagues(){
                 row.appendChild(cell);
             
                 tbody.appendChild(row);
+
+                deleteButton.onclick = function(){
+                    var parentRow = deleteButton.parentElement.parentElement;
+
+                    league = parentRow.children[0].innerHTML;
+                    organization = parentRow.children[2].innerHTML;
+
+                    fetch('http://localhost:8080/admin-leagues?league=' + encodeURIComponent(league) + '&organization=' + encodeURIComponent(organization), {
+                        method: 'DELETE',
+                        credentials: 'include'
+                    }).then(function(response){
+                        if (response.status == 200){
+                            console.log('Removed league');
+                            adminPortal();
+                            createStatsManager();
+                        } else {
+                            console.log('Unable to remove league');
+                        }
+                    })
+                }
             });
             adminLeaguesTable.appendChild(tbody);
         })
@@ -2095,7 +2152,9 @@ function clearPage(){
     var divsInsideWrapper = wrapper.querySelectorAll("div");
 
     for (var i = 0; i < divsInsideWrapper.length; i++){
-        divsInsideWrapper[i].style.display = "none";
+        if (!divsInsideWrapper[i].classList.contains('carousel') && !divsInsideWrapper[i].classList.contains('carousel-inner') && !divsInsideWrapper[i].classList.contains('carousel-item')) {
+            divsInsideWrapper[i].style.display = "none";
+        }
     }
     if (document.querySelector("#league-display")){
         leagueDisplay = document.querySelector("#league-display");

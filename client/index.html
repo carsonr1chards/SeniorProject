@@ -8,6 +8,11 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <link rel="stylesheet" href="style.css">
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@3.4.1/dist/css/bootstrap.min.css" integrity="sha384-HSMxcRTRxnN+Bdg0JdbxYKrThecOKuH5zCYotlSAcp1+c8xmyTe9GYg1l9a69psu" crossorigin="anonymous">
+        <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+        <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+        <!-- Bootstrap JS -->
+        <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
     </head>
     <body>
         <div id="wrapper">
@@ -16,7 +21,20 @@
             </nav>
             <div id="login-portal">
                 <div id="login">
-                    <img id="logo" src="/images/IntramurALL-Logo.svg" alt="">
+                    <div class="carousel slide" data-ride="carousel">
+                        <div class="carousel-inner">
+                          <div class="carousel-item active">
+                            <img class="d-block w-100" id="basketball-logo" src="/images/Basketball-Logo.svg" alt="First slide">
+                          </div>
+                          <div class="carousel-item">
+                            <img class="d-block w-100" id="football-logo" src="/images/Football-Logo.svg" alt="Second slide">
+                          </div>
+                          <div class="carousel-item">
+                            <img class="d-block w-100" id="soccer-logo" src="/images/Soccer-Logo.svg" alt="Third slide">
+                          </div>
+                        </div>
+                      </div>
+
                     <div class="login-signup">
                         <button id="login-switch-button-1">Login</button>
                         <button id="signup-switch-button-1">Sign up</button>
@@ -27,7 +45,19 @@
                 </div>
         
                 <div id="signup">
-                    <img id="logo" src="/images/IntramurALL-Logo.svg" alt="">
+                    <div class="carousel slide" data-ride="carousel">
+                        <div class="carousel-inner">
+                          <div class="carousel-item active">
+                            <img class="d-block w-100" id="basketball-logo" src="/images/Basketball-Logo.svg" alt="First slide">
+                          </div>
+                          <div class="carousel-item">
+                            <img class="d-block w-100" id="football-logo" src="/images/Football-Logo.svg" alt="Second slide">
+                          </div>
+                          <div class="carousel-item">
+                            <img class="d-block w-100" id="soccer-logo" src="/images/Soccer-Logo.svg" alt="Third slide">
+                          </div>
+                        </div>
+                      </div>
                     <div class="login-signup">
                         <button id="login-switch-button-2">Login</button>
                         <button id="signup-switch-button-2">Sign up</button>

@@ -152,10 +152,31 @@ def get_league():
 @app.route("/admin-leagues", methods=["GET"])
 def getAdminLeagues():
     adminID = g.session_data["admin_id"]
+    if not adminID:
+        return "Unauthorized", 401
     db = IntramurallDB()
     leagues = db.getAdminLeagues(adminID)
     print(leagues)
     return leagues, 200
+
+@app.route("/admin-leagues", methods=["DELETE"])
+def removeAdminLeague():
+    adminID = g.session_data["admin_id"]
+    if not adminID:
+        return "Unauthorized", 401
+    
+    league = request.args.get('league')
+    organization = request.args.get('organization')
+
+    if league and organization:
+        db = IntramurallDB()
+        leagueExists = db.getAdminLeague(adminID, league)
+
+        if leagueExists:
+            db.removeAdminLeague(adminID, league, organization)
+            return "Removed league", 200
+            
+    return "Unauthorized", 401
 
 @app.route("/admin-leagues/<league>", methods=["GET"])
 def getAdminLeague(league):
@@ -406,6 +427,9 @@ def get_users_games():
     if not organization and (team and league):
         organization = db.getOrganization(team, league)
         organization = organization[0]
+
+    if g.session_data['role'] == 'admin':
+        return [], 200
 
     userID = g.session_data["user_id"]
     if not userID:

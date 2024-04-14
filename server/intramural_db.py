@@ -4,7 +4,7 @@ class IntramurallDB:
     
     def __init__(self):
         self.cnx = mysql.connector.connect(user='root', password='Intramurall2024',
-                                           host='localhost', database='intramurall')
+                                           host='db-intramurall.cdq4smiqidbh.us-east-2.rds.amazonaws.com', database='intramurall')
         self.cursor = self.cnx.cursor()
 
     def registerUser(self, first_name, last_name, email, password):
@@ -100,6 +100,59 @@ class IntramurallDB:
         self.cursor.execute(get_league, admin_data)
         league = self.cursor.fetchall()
         return league
+    
+    def removeAdminLeague(self, adminID, league, organization):
+
+        query = ("DELETE FROM leagues WHERE league_name = %(league)s AND organization = %(organization)s AND adminID = %(adminID)s")
+
+        data = {
+            'league': league,
+            'organization': organization,
+            'adminID': adminID
+        }
+
+        self.cursor.execute(query, data)
+        self.cnx.commit()
+
+        query = ('DELETE FROM schedules WHERE league = %(league)s AND adminID = %(adminID)s')
+
+        data = {
+            'league': league,
+            'adminID': adminID
+        }
+
+        self.cursor.execute(query, data)
+        self.cnx.commit()
+
+        query = ('DELETE FROM teams WHERE league = %(league)s AND organization = %(organization)s')
+
+        data = {
+            'league': league,
+            'organization': organization
+        }
+
+        self.cursor.execute(query, data)
+        self.cnx.commit()
+
+        query = ('DELETE FROM teamRosters WHERE league = %(league)s AND organization = %(organization)s')
+
+        data = {
+            'league': league,
+            'organization': organization   
+        }
+
+        self.cursor.execute(query, data)
+        self.cnx.commit()
+
+        query = ('DELETE FROM stats WHERE league = %(league)s AND organization = %(organization)s')
+
+        data = {
+            'league': league,
+            'organization': organization   
+        }
+
+        self.cursor.execute(query, data)
+        self.cnx.commit()
 
     def getSport(self, adminID, league_name):
         get_sport = ("SELECT sport FROM leagues WHERE adminID = %(adminID)s AND league_name = %(league_name)s")
@@ -350,6 +403,7 @@ class IntramurallDB:
                                     "teams": game
                                 })
             i += 1
+
 
         return games_by_date
 
