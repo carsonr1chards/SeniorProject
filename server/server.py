@@ -6,6 +6,7 @@ from datetime import datetime, timedelta
 import random
 import json
 import itertools
+from waitress import serve
 
 session_store = SessionStore()
 
@@ -175,7 +176,7 @@ def removeAdminLeague():
         if leagueExists:
             db.removeAdminLeague(adminID, league, organization)
             return "Removed league", 200
-            
+
     return "Unauthorized", 401
 
 @app.route("/admin-leagues/<league>", methods=["GET"])
@@ -559,7 +560,7 @@ def get_my_teams():
         return teams, 200
 
 def main():
-    app.run(port=8080)
+    serve(app, host='0.0.0.0', port=8080)
 
 if __name__ == '__main__':
     main()
