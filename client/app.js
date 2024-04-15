@@ -2167,7 +2167,7 @@ function clearPage(){
         leagueDisplay.remove();
     }
     if (window.innerWidth <= 767) {
-        wrapper.style.gridTemplateRows = "100px repeat(6, 200px)";
+        wrapper.style.gridTemplateRows = "100px 100px repeat(6, 200px)";
     } else {
         wrapper.style.gridTemplateRows = "repeat(6, 150px)";
     }
@@ -2183,7 +2183,11 @@ function clearPage(){
 }
 
 function displayHomePage(){
-    document.querySelector("#welcome-header-container").style.display = "block";
+    if (window.innerWidth <= 767) {
+        document.querySelector("#welcome-header-container").style.display = "flex";
+    } else {
+        document.querySelector("#welcome-header-container").style.display = "block";
+    }
     document.querySelector("#leagues-container").style.display = "grid";
     document.querySelector("#upcoming-games-container").style.display = "grid";
     document.querySelector("#welcome-header").innerHTML = "Welcome to IntramurALL"
