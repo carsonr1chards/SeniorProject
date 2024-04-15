@@ -136,6 +136,8 @@ body{
 
 #header-logo{
     align-self: center;
+    height: auto;
+    width: 130px;
 }
 
 #home-icon, #stats-icon, #schedule-icon, #teams-icon, #admin-icon, #logout-icon{
@@ -1325,10 +1327,11 @@ body{
         grid-row: 2 / 3;
         padding: 0;
         margin: 5px;
-        height: 90%;
+        height: 80%;
         display: flex;
         flex-direction: column;
         justify-content: center;
+        align-self: center;
     }
 
     #leagues-container{

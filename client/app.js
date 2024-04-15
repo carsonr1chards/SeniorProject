@@ -90,7 +90,11 @@ loginButton.onclick = function(){
             var wrapper = document.querySelector("#wrapper")
             var intramurallText = document.querySelector("#intramurall-text")
             wrapper.style.display = 'grid';
-            wrapper.style.gridTemplateColumns = '150px 1fr 1fr 1fr 1fr 1fr 1fr';
+            if (window.innerWidth <= 767) {
+                wrapper.style.gridTemplateColumns = 'repeat(7, 1fr)';
+            } else {
+                wrapper.style.gridTemplateColumns = '150px 1fr 1fr 1fr 1fr 1fr 1fr';
+            }
             header.style.gridColumn = '0/1'
             intramurallText.style.display = 'none';
             document.querySelector("#login-portal").style.display = 'none';
@@ -117,8 +121,6 @@ function createHomePage (){
     var logo = document.createElement("img");
     logo.setAttribute('id', 'header-logo')
     logo.src = "/images/IntramurALL-Logo.svg";
-    logo.style.height = 'auto';
-    logo.style.width = '130px'
     navList.appendChild(logo);
 
     var div = document.createElement('div');
@@ -443,7 +445,11 @@ function loadDataFromServer(){
             var wrapper = document.querySelector("#wrapper");
             var intramurallText = document.querySelector("#intramurall-text");
             wrapper.style.display = 'grid';
-            wrapper.style.gridTemplateColumns = '150px 1fr 1fr 1fr 1fr 1fr 1fr';
+            if (window.innerWidth <= 767) {
+                wrapper.style.gridTemplateColumns = 'repeat(7, 1fr)';
+            } else {
+                wrapper.style.gridTemplateColumns = '150px 1fr 1fr 1fr 1fr 1fr 1fr';
+            }
             header.style.gridColumn = '0/1'
             header.style.gridRow = '0/-1'
             intramurallText.style.display = 'none';
@@ -2160,7 +2166,11 @@ function clearPage(){
         leagueDisplay = document.querySelector("#league-display");
         leagueDisplay.remove();
     }
-    wrapper.style.gridTemplateRows = "repeat(6, 150px)";
+    if (window.innerWidth <= 767) {
+        wrapper.style.gridTemplateRows = "100px repeat(6, 200px)";
+    } else {
+        wrapper.style.gridTemplateRows = "repeat(6, 150px)";
+    }
 
     if (document.querySelector('#my-team-display')){
         document.querySelector('#my-team-display').remove();
