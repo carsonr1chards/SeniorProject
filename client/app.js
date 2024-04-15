@@ -49,7 +49,7 @@ signupButton.onclick = function(){
         data += "&last_name=" + encodeURIComponent(signupLastName.value);
         data += "&email=" + encodeURIComponent(signupEmail.value);
         data += "&password=" + encodeURIComponent(signupPassword.value);
-        fetch("http://localhost:8080/users", {
+        fetch("https://intramurall.onrender.com/users", {
             credentials: "include",
             method: "POST",
             body: data,
@@ -74,7 +74,7 @@ loginPassword = document.querySelector("#login-password");
 loginButton.onclick = function(){
     var data = "email=" + encodeURIComponent(loginEmail.value);
     data += "&password=" + encodeURIComponent(loginPassword.value);
-    fetch("http://localhost:8080/sessions",{
+    fetch("https://intramurall.onrender.com/sessions",{
         credentials: "include",
         method: "POST",
         body: data,
@@ -272,7 +272,7 @@ function createHomePage (){
         //populate games for each date ul
             // for each game li
 
-    fetch('http://localhost:8080/users/games', {
+    fetch('https://intramurall.onrender.com/users/games', {
         credentials: "include"
     }).then(function(response) {
         if (response.status == 200) {
@@ -329,7 +329,7 @@ function createHomePage (){
 }
 
 function logout(){
-    fetch("http://localhost:8080/logout",{
+    fetch("https://intramurall.onrender.com/logout",{
         method: "POST"
     }).then(function(response){
         if (response.status == 201){
@@ -366,7 +366,7 @@ function logout(){
 
 function loadLeagues(){
     searchInput = organizationSearch.value;
-    fetch("http://localhost:8080/organizations", {
+    fetch("https://intramurall.onrender.com/organizations", {
         credentials: "include"
     }).then(function(response){
         if (response.status == 200){
@@ -434,7 +434,7 @@ function filterLeagues(organization){
 }
 
 function loadDataFromServer(){
-    fetch("http://localhost:8080/users",{
+    fetch("https://intramurall.onrender.com/users",{
         credentials: "include"
     }).then(function(response){
         if (response.status == 200){
@@ -458,7 +458,7 @@ function viewLeague(button){
     league = button.parentElement.parentElement.children[0].textContent;
     organziation = organization.replace(/ /g, "%20");
     league = league.replace(/ /g, "%20");
-    fetch("http://localhost:8080/leagues?league=" + league + "&organization=" + organization, {
+    fetch("https://intramurall.onrender.com/leagues?league=" + league + "&organization=" + organization, {
         credentials: "include"
     }).then(function(response){
         if (response.status == 200){
@@ -579,7 +579,7 @@ function viewLeague(button){
 
 function createTeam(teamName, email, league, organization){
     data = "team_name=" + teamName + "&email=" + email + "&league=" + league + "&organization=" + organization;
-    fetch('http://localhost:8080/teams',{
+    fetch('https://intramurall.onrender.com/teams',{
         credentials: "include",
         method: 'POST',
         body: data,
@@ -599,7 +599,7 @@ function closeLeagueDisplay(){
 }
 
 function populateLeagueTeams(league, organization){
-    fetch("http://localhost:8080/teams?league=" + league + "&organization=" + organization, {
+    fetch("https://intramurall.onrender.com/teams?league=" + league + "&organization=" + organization, {
         credentials: "include"
     }).then(function(response){
         if (response.status == 200){
@@ -695,7 +695,7 @@ function viewTeam(button){
     joinTeamButton.onclick = function(){
         data = "team_name=" + button.parentElement.parentElement.children[0].textContent;
         data += "&league=" + document.getElementById("league-display-header-div").children[0].textContent;
-        fetch('http://localhost:8080/rosters',{
+        fetch('https://intramurall.onrender.com/rosters',{
             method: 'POST',
             credentials: 'include',
             body: data,
@@ -715,7 +715,7 @@ function viewTeam(button){
 function loadSchedule(team, league){
     var scheduleDisplay = document.querySelector('#schedule-display');
 
-    fetch('http://localhost:8080/games?league=' + encodeURIComponent(league) + '&team=' + encodeURIComponent(team), {
+    fetch('https://intramurall.onrender.com/games?league=' + encodeURIComponent(league) + '&team=' + encodeURIComponent(team), {
         credentials: "include"
     }).then(function(response) {
         if (response.status == 200) {
@@ -778,7 +778,7 @@ function loadRoster(team, league){
     tr.appendChild(th);
     tbody.appendChild(tr);
 
-    fetch('http://localhost:8080/rosters?league=' + encodeURIComponent(league) + '&team=' + encodeURIComponent(team),{
+    fetch('https://intramurall.onrender.com/rosters?league=' + encodeURIComponent(league) + '&team=' + encodeURIComponent(team),{
         credentials: 'include'
     }).then(function(response){
         if (response.status == 200){
@@ -808,7 +808,7 @@ function closeTeamDisplay(){
 }
 
 function isAdmin(){
-    fetch("http://localhost:8080/roles",{
+    fetch("https://intramurall.onrender.com/roles",{
         credentials: "include",
         method: "POST",
         headers: {
@@ -889,7 +889,7 @@ function isAdmin(){
                 upcomingGames.setAttribute("id","upcoming-games-div");
                 upcomingGamesContainer.appendChild(upcomingGames);
 
-                fetch('http://localhost:8080/users/games', {
+                fetch('https://intramurall.onrender.com/users/games', {
                     credentials: "include"
                 }).then(function(response) {
                     if (response.status == 200) {
@@ -1070,7 +1070,7 @@ function adminPortal(){
     selectLeague.setAttribute('id', 'select-league');
     adminSchedulerContainer.appendChild(selectLeague);
 
-    fetch("http://localhost:8080/admin-leagues",{
+    fetch("https://intramurall.onrender.com/admin-leagues",{
         credentials: 'include',
     }).then(function(response){
         response.json().then(function(data){
@@ -1139,7 +1139,7 @@ function adminPortal(){
                         scheduleDelete.onclick = function(){
                             input = confirm('Do you want to delete this schedule?');
                             if (input){
-                                fetch('http://localhost:8080/schedules?league=' + encodeURIComponent(selectedLeague),{
+                                fetch('https://intramurall.onrender.com/schedules?league=' + encodeURIComponent(selectedLeague),{
                                     method: "DELETE",
                                     credentials: "include"
                                 }).then(function(response){
@@ -1197,7 +1197,7 @@ function adminPortal(){
                                             dropdownContent.classList.remove('show');
                                         });
                         
-                                        fetch("http://localhost:8080/admin-leagues/" + selectedLeague,{
+                                        fetch("https://intramurall.onrender.com/admin-leagues/" + selectedLeague,{
                                             credentials: 'include',
                                         }).then(function(response){
                                             response.json().then(function(data){
@@ -1346,7 +1346,7 @@ function adminPortal(){
                         dropdownContent.classList.remove('show');
                     });
     
-                    fetch("http://localhost:8080/admin-leagues/" + selectedLeague,{
+                    fetch("https://intramurall.onrender.com/admin-leagues/" + selectedLeague,{
                         credentials: 'include',
                     }).then(function(response){
                         response.json().then(function(data){
@@ -1425,7 +1425,7 @@ function createStatsManager() {
     wrapper.appendChild(adminStatsContainer);
 
     selectLeagueStats = document.querySelector("#select-league-stats");
-    fetch("http://localhost:8080/admin-leagues",{
+    fetch("https://intramurall.onrender.com/admin-leagues",{
         credentials: 'include',
     }).then(function(response){
         response.json().then(function(data){
@@ -1476,7 +1476,7 @@ function createStatsManager() {
             selectLeagueStats.style.gridColumn = "2 / 4";
 
             var league = encodeURIComponent(selectLeagueStats.value);
-            fetch("http://localhost:8080/sports?league=" + league, {
+            fetch("https://intramurall.onrender.com/sports?league=" + league, {
                 credentials: 'include'
             }).then(function(response){
                 if (response.status == 200){
@@ -1489,7 +1489,7 @@ function createStatsManager() {
                         statInputContainer.children[0].setAttribute('id', 'stat-input-table');
                         statInputContainer.children[0].setAttribute('class', 'table table-bordered table-striped')
 
-                        fetch("http://localhost:8080/teams?league=" + league, {
+                        fetch("https://intramurall.onrender.com/teams?league=" + league, {
                             credentials: 'include'
                         }).then(function(response){
                             if (response.status == 200){
@@ -1538,7 +1538,7 @@ function createStatsManager() {
                                                 adminStatsContainer.appendChild(submitStats);
                                             }
 
-                                            fetch("http://localhost:8080/rosters?league=" + encodeURIComponent(selectLeagueStats.value) + "&team=" + encodeURIComponent(selectTeamStats.value), {
+                                            fetch("https://intramurall.onrender.com/rosters?league=" + encodeURIComponent(selectLeagueStats.value) + "&team=" + encodeURIComponent(selectTeamStats.value), {
                                                 credentials: 'include'
                                             }).then(function(response){
                                                 if (response.status == 200){
@@ -1599,7 +1599,7 @@ function createStatsManager() {
                                                     stats.push(playerStats);
                                                 }
                                                 
-                                                fetch('http://localhost:8080/stats?sport=' + sport + "&league=" + encodeURIComponent(selectLeagueStats.value) + "&team=" + encodeURIComponent(selectTeamStats.value),{
+                                                fetch('https://intramurall.onrender.com/stats?sport=' + sport + "&league=" + encodeURIComponent(selectLeagueStats.value) + "&team=" + encodeURIComponent(selectTeamStats.value),{
                                                     method: 'POST',
                                                     headers: {
                                                         'Content-Type': 'application/json',
@@ -1790,7 +1790,7 @@ function createSchedule() {
     let league_name = encodeURIComponent(selectedLeague)
 
     // fetches the organization name so that the schedule can be created
-    fetch('http://localhost:8080/admin-leagues/' + league_name, {
+    fetch('https://intramurall.onrender.com/admin-leagues/' + league_name, {
         credentials: 'include'
     }).then(function(response){
         if (response.status == 200){
@@ -1808,7 +1808,7 @@ function createSchedule() {
                 formData.append('start_time', startTime);
                 formData.append('end_time', endTime);
 
-                fetch('http://localhost:8080/schedules',{
+                fetch('https://intramurall.onrender.com/schedules',{
                     credentials: 'include',
                     method: 'POST',
                     body: formData, // Use formData here
@@ -1828,7 +1828,7 @@ function createSchedule() {
 function scheduleExists(selectedLeague) {
     return new Promise((resolve, reject) => {
         var league = encodeURIComponent(selectedLeague);
-        fetch('http://localhost:8080/schedules/' + league, {
+        fetch('https://intramurall.onrender.com/schedules/' + league, {
             credentials: 'include'
         }).then(function (response) {
             if (response.status == 200) {
@@ -1894,7 +1894,7 @@ function convertToMilitaryTime(standardTime) {
 function addLeague(league, description, organization, start, end, registration, sport){
     data = "league_name=" + league + "&" + "description=" + description + "&" + "organization=" + organization + "&startDate=" + start + "&endDate=" + end + "&registration=" + registration + "&sport=" + sport;
     console.log(data);
-    fetch("http://localhost:8080/leagues",{
+    fetch("https://intramurall.onrender.com/leagues",{
         credentials: 'include',
         method: 'POST',
         body: data,
@@ -1963,7 +1963,7 @@ function displayAdminLeagues(){
     if (table){
         table.remove();
     }
-    fetch("http://localhost:8080/admin-leagues",{
+    fetch("https://intramurall.onrender.com/admin-leagues",{
         credentials: 'include',
     }).then(function(response){
         response.json().then(function(data){
@@ -2030,7 +2030,7 @@ function displayAdminLeagues(){
                     league = parentRow.children[0].innerHTML;
                     organization = parentRow.children[2].innerHTML;
 
-                    fetch('http://localhost:8080/admin-leagues?league=' + encodeURIComponent(league) + '&organization=' + encodeURIComponent(organization), {
+                    fetch('https://intramurall.onrender.com/admin-leagues?league=' + encodeURIComponent(league) + '&organization=' + encodeURIComponent(organization), {
                         method: 'DELETE',
                         credentials: 'include'
                     }).then(function(response){
@@ -2234,7 +2234,7 @@ function statsPage(){
     statsContainer.innerHTML = statsHTML;
     var myStats = document.querySelector('#my-stats-window');
 
-    fetch('http://localhost:8080/stats', {
+    fetch('https://intramurall.onrender.com/stats', {
         credentials: 'include'
     }).then(function(response) {
         if (response.status == 200) {
@@ -2287,7 +2287,7 @@ function statsPage(){
     })
     var statLeaders = document.querySelector("#league-leaders-window");
 
-    fetch('http://localhost:8080/stats/leaders',{
+    fetch('https://intramurall.onrender.com/stats/leaders',{
         credentials: 'include'
     }).then(function(response){
         if (response.status == 200){
@@ -2340,7 +2340,7 @@ function teamsPage(){
 
     var myTeamsDisplay = document.querySelector('#my-teams-display');
 
-    fetch('http://localhost:8080/teams/myteams',{
+    fetch('https://intramurall.onrender.com/teams/myteams',{
         credentials: 'include'
     }).then(function(response){
         if (response.status == 200){
@@ -2418,7 +2418,7 @@ function teamsPage(){
                         tbody.appendChild(tr);
 
                         // fetch request to get the roster
-                        fetch('http://localhost:8080/rosters?league=' + encodeURIComponent(league) + '&team=' + encodeURIComponent(team) + '&organization=' + encodeURIComponent(organization),{
+                        fetch('https://intramurall.onrender.com/rosters?league=' + encodeURIComponent(league) + '&team=' + encodeURIComponent(team) + '&organization=' + encodeURIComponent(organization),{
                             credentials: 'include'
                         }).then(function(response){
                             if (response.status == 200){
@@ -2438,7 +2438,7 @@ function teamsPage(){
 
 
                         // fetch request to get the schedule
-                        fetch('http://localhost:8080/games?league=' + encodeURIComponent(league) + '&team=' + encodeURIComponent(team) + '&organization=' + encodeURIComponent(organization), {
+                        fetch('https://intramurall.onrender.com/games?league=' + encodeURIComponent(league) + '&team=' + encodeURIComponent(team) + '&organization=' + encodeURIComponent(organization), {
                             credentials: "include"
                         }).then(function(response) {
                             if (response.status == 200) {
