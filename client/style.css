@@ -1290,3 +1290,49 @@ body{
     grid-column: 5 / 6;
     grid-row: 2;
 }
+
+@media only screen and (max-width: 767px) {
+    
+    #login, #signup{
+        grid-column: 2/6;
+    }
+
+    #wrapper{
+        grid-template-rows: 100px repeat(6, 200px);
+        grid-template-columns: repeat(7, 1fr);
+    }
+
+    #header{
+        grid-row: 1;
+        grid-column: 1 / -1;
+        align-items: center;
+    }
+
+    #nav-list{
+        height: auto;
+        flex-direction: row;
+        align-items: center;
+        position: unset;
+    }
+
+    #header-logo{
+        height: 75px;
+    }
+
+    #welcome-header-container{
+        grid-column: 1 / -1;
+        grid-row: 2 / 3;
+        padding: 0;
+    }
+
+    #leagues-container{
+        grid-column: 1 / -1;
+        grid-row: 2/5;
+    }
+
+    #upcoming-games-container{
+        grid-column: 1/-1;
+        grid-row: 5/8;
+    }
+}
+
