@@ -1300,7 +1300,7 @@ body{
     }
 
     #wrapper{
-        grid-template-rows: 100px repeat(6, 200px);
+        grid-template-rows: 100px 100px repeat(5, 200px);
         grid-template-columns: repeat(7, 1fr);
     }
 
