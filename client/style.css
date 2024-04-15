@@ -1316,23 +1316,64 @@ body{
     }
 
     #header-logo{
-        height: 75px;
+        height: auto;
+        width: 75px;
     }
 
     #welcome-header-container{
         grid-column: 1 / -1;
         grid-row: 2 / 3;
         padding: 0;
+        margin: 5px;
+        height: 90%;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
     }
 
     #leagues-container{
         grid-column: 1 / -1;
-        grid-row: 2/5;
+        grid-row: 3/6;
+    }
+
+    #leagues-table-container{
+        margin: 5px;
     }
 
     #upcoming-games-container{
         grid-column: 1/-1;
-        grid-row: 5/8;
+        grid-row: 6/-1;
+    }
+
+    #teams-container{
+        grid-column: 1 / 8;
+        grid-row: 2 / 7;
+    }
+
+    .team-element{
+        width: 90%;
+    }
+
+    #my-team-display{
+        grid-column: 1 / -1;
+        margin: 25px;
+    }
+
+    #stats-container{
+        grid-column: 1 / 8;
+        grid-row: 2 / 7;
+    }
+
+    #league-display{
+        grid-column: 1 / 8;
+        grid-row: 2 / 7;
+        filter: drop-shadow(black 1rem 1rem 5px);
+    }
+
+    #league-display-header{
+        text-align: center;
+        grid-column: 2 / 6;
+        text-wrap: nowrap;
     }
 }
 
