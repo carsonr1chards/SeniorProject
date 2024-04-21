@@ -226,7 +226,7 @@ function createHomePage (){
     organizationSelectorContainer.setAttribute('id', 'organization-selector-container');
     leaguesContainer.appendChild(organizationSelectorContainer);
     organizationSearch = document.createElement('input');
-    organizationSearch.placeholder = "Search By Organization";
+    organizationSearch.placeholder = "Search By League";
     loadLeagues();
     organizationSelectorContainer.appendChild(organizationSearch);
     searchButton = document.createElement('button');
@@ -327,7 +327,17 @@ function createHomePage (){
             message.style.textAlign = 'center';
             upcomingGames.appendChild(message);
         }
-    });     
+    })
+    var uls = upcomingGames.querySelectorAll('ul');
+    uls.forEach(function(ul) {
+        if (!ul.children.length) {
+            ul.remove();
+        }
+    });   
+
+    if (upcomingGames.lastElementChild.tagName === 'H3' ){
+        upcomingGames.lastElementChild.remove();
+    }
 }
 
 function logout(){
@@ -424,7 +434,7 @@ function filterLeagues(organization){
     var leagues = leaguesTable.querySelectorAll('tr');
 
     for (var i = 0; i < leagues.length; i++){
-        league = leagues[i].children[1].textContent.toUpperCase();
+        league = leagues[i].children[0].textContent.toUpperCase();
         if (league.includes(organization.toUpperCase())){
             // pass
         } else{
@@ -2169,7 +2179,7 @@ function clearPage(){
     if (window.innerWidth <= 767) {
         wrapper.style.gridTemplateRows = "100px 100px repeat(6, 200px)";
     } else {
-        wrapper.style.gridTemplateRows = "repeat(6, 1fr)";
+        wrapper.style.gridTemplateRows = "150px repeat(5, 1fr)";
     }
 
     if (document.querySelector('#my-team-display')){

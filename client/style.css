@@ -583,13 +583,15 @@ body{
     overflow-y: auto;
     border: 2px solid black;
     border-radius: 5px;
-    height: 400px;
 }
 
 #league-info{
     grid-row: 2/3;
     grid-column: 3/5;
-    text-align: center;
+    text-align: center;    
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
 }
 
 #create-team-inputs{
