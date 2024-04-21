@@ -2169,7 +2169,7 @@ function clearPage(){
     if (window.innerWidth <= 767) {
         wrapper.style.gridTemplateRows = "100px 100px repeat(6, 200px)";
     } else {
-        wrapper.style.gridTemplateRows = "repeat(6, 150px)";
+        wrapper.style.gridTemplateRows = "repeat(6, 1fr)";
     }
 
     if (document.querySelector('#my-team-display')){
