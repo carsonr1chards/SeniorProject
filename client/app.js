@@ -319,6 +319,16 @@ function createHomePage (){
                         upcomingGames.lastElementChild.remove();
                     }
                 }
+                var uls = upcomingGames.querySelectorAll('ul');
+                uls.forEach(function(ul) {
+                    if (!ul.children.length) {
+                        ul.remove();
+                    }
+                });   
+            
+                if (upcomingGames.lastElementChild.tagName === 'H3' ){
+                    upcomingGames.lastElementChild.remove();
+                }
             });
         } else {
             // if player is not scheduled for any upcoming games
@@ -328,16 +338,6 @@ function createHomePage (){
             upcomingGames.appendChild(message);
         }
     })
-    var uls = upcomingGames.querySelectorAll('ul');
-    uls.forEach(function(ul) {
-        if (!ul.children.length) {
-            ul.remove();
-        }
-    });   
-
-    if (upcomingGames.lastElementChild.tagName === 'H3' ){
-        upcomingGames.lastElementChild.remove();
-    }
 }
 
 function logout(){
