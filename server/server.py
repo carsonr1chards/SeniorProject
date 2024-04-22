@@ -250,7 +250,8 @@ def getTeams():
             for team in teams:
                 name = db.getName(teams[i][1])
                 teams[i] = list(teams[i])
-                teams[i][1] = name[0][0] + " " + name[0][1]
+                if name:
+                    teams[i][1] = name[0][0] + " " + name[0][1]
                 i += 1
             return teams, 200
         return "Unable to find requested teams", 404
