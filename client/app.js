@@ -1607,7 +1607,10 @@ function createStatsManager() {
                                                     let playerStats = {};
                                                     playerRow = inputs[i].children;
 
-                                                    playerStats["Player"] = playerRow[0].textContent.replace(/\n/g, "");
+                                                    var playerName = playerRow[0].textContent.replace(/\n/g, "");
+                                                    playerName.trim();
+
+                                                    playerStats["Player"] = playerName;
                                                     for (let j = 1; j < playerRow.length; j++){
                                                         let stat = playerRow[j].children[0].value;
                                                         playerStats[statInputTable.children[0].children[0].children[j].textContent] = stat
