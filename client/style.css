@@ -1108,6 +1108,10 @@ body{
     overflow-y: scroll;
 }
 
+#my-stats-window table{
+    margin-bottom: 50px;
+}
+
 #league-leaders-window{
     grid-column: 1 / -1;
     grid-row: 7 / 10;
@@ -1119,10 +1123,22 @@ body{
 
 .my-stat-headers{
     text-align: center;
+    background-color: rgb(252, 123, 4);
+    width: fit-content;
+    margin: auto;
+    text-wrap: nowrap;
+    padding: 10px;
+    border-radius: 5px;
 }
 
 .stat-leaders-header{
     text-align: center;
+    background-color: rgb(252, 123, 4);
+    width: fit-content;
+    margin: auto;
+    text-wrap: nowrap;
+    padding: 10px;
+    border-radius: 5px;
 }
 
 #my-stats-header{
@@ -1387,6 +1403,16 @@ body{
     #login-button:active, #signup-button:active{
         background-color: rgba(34, 34, 34, 1);
         color: #fff;
+    }
+
+    .my-stat-headers{
+        text-wrap: wrap;
+        padding: 5px;
+    }
+    
+    .stat-leaders-header{
+        text-wrap: wrap;
+        padding: 5px;
     }
 }
 
